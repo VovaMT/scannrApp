@@ -4,13 +4,10 @@ import {
   Text,
   StyleSheet,
   Button,
-  ActivityIndicator,
   Alert,
 } from 'react-native';
-import { ProgressBar } from 'react-native-paper';
 import { initDB, clearGoods, insertGoods } from '../database/db';
-
-const API_URL = 'http://10.0.2.2:8080/good';
+import { fetchGoods } from '../api/goodsApi';
 
 const DownloadScreen = () => {
   const [loading, setLoading] = useState(false);
@@ -19,88 +16,83 @@ const DownloadScreen = () => {
   const fetchAndStoreGoods = async () => {
     try {
       setLoading(true);
-      setProgress(0.1); // Початковий прогрес
+      setProgress(0.1);
+
       await initDB();
+      setProgress(0.3);
 
-      setProgress(0.3); // Прогрес після ініціалізації бази даних
+      const goods = await fetchGoods();
+      setProgress(0.6);
 
-      const response = await fetch(API_URL);
-      if (!response.ok) {
-        throw new Error('Помилка при отриманні даних з сервера');
-      }
-
-      const goods = await response.json();
-
-      setProgress(0.6); // Прогрес після отримання даних
-      
-      console.log('Отримано товари:', goods);
-
-      // Очищаємо таблицю перед вставкою нових даних
       await clearGoods();
+      setProgress(0.8);
 
-      setProgress(0.8); // Прогрес після очищення таблиці
-
-      // Вставляємо нові дані
       await insertGoods(goods);
+      setProgress(1);
 
-      setProgress(1); // Завершення завантаження
-
-      Alert.alert('Успіх', 'Дані успішно збережено у SQLite!');
+      Alert.alert('Дані успішно збережено у SQLite!');
     } catch (error) {
       console.error('Помилка завантаження:', error);
       Alert.alert('Помилка', error.message || 'Не вдалося завантажити дані');
     } finally {
+      setProgress(0);
       setLoading(false);
-      setProgress(0); // Скидаємо прогрес
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Завантажити дані з сервера</Text>
-      <Text>Прогресбар має бути нижче</Text>
-  
-      {/* Цей прогресбар показується завжди */}
-      <ProgressBar progress={0.5} color="red" style={styles.progressBarStatic} />
-  
-      <Button
-        title="Завантажити"
-        onPress={fetchAndStoreGoods}
-        disabled={loading}
-      />
-  
-      {/* Цей прогресбар показується тільки під час завантаження */}
-      {loading && (
-        <>
-          <ProgressBar progress={progress} color="#FF0000" style={styles.progressBar} />
-          <ActivityIndicator size="large" style={{ marginTop: 20 }} />
-        </>
-      )}
+      <Text style={styles.title}>Завантаження товарів</Text>
+
+      <View style={styles.buttonWrapper}>
+        <Button
+          title={loading ? 'Завантаження...' : 'Завантажити'}
+          onPress={fetchAndStoreGoods}
+          disabled={loading}
+        />
+        {loading && (
+          <View style={styles.progressLine}>
+            <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
+          </View>
+        )}
+      </View>
     </View>
   );
-  
 };
+
 export default DownloadScreen;
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    padding: 20 },
-  title: { 
-    fontSize: 20, 
-    marginBottom: 20, 
-    textAlign: 'center' 
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 24,
+    backgroundColor: '#fff',
   },
-  progressBarStatic: {
-    width: '80%',
-    height: 20,
-    marginVertical: 10,
+  title: {
+    fontSize: 22,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 30,
   },
-  progressBar: {
-    width: '80%',
-    height: 10,
+  buttonWrapper: {
+    width: '100%',
     marginTop: 20,
+    position: 'relative',
+  },
+  progressLine: {
+    position: 'absolute',
+    bottom: -2,
+    left: 0,
+    right: 0,
+    height: 4,
+    backgroundColor: '#ddd',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#6b8e23',
+    borderRadius: 2,
   },
 });

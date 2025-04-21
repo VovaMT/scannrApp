@@ -1,36 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { getUserData } from '../utils/storage';
 
 const modules = [
-    { title: 'Інвентаризація', route: 'Inventory' },
-    { title: 'Переміщення', route: 'Transfer' },
-    { title: 'Резервування', route: 'Reservation' },
-    { title: 'Властивості товару', route: 'ProductProperties' },
-  ];
-
+  { title: 'Інвентаризація', route: 'Inventory' },
+  { title: 'Переміщення', route: 'Transfer' },
+  { title: 'Резервування', route: 'Reservation' },
+  { title: 'Властивості товару', route: 'ProductProperties' },
+];
 
 const HomeScreen = ({ navigation }) => {
-  const [isAuthorized, setIsAuthorized] = useState(false);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { name, key } = await getUserData();
-      setIsAuthorized(!!name && !!key);
-    };
-
-    checkAuth();
-  }, []);
-
-//   if (!isAuthorized) {
-//     return (
-//       <View style={styles.container}>
-//         <Text style={styles.header}>Будь ласка, увійдіть до системи</Text>
-//       </View>
-//     );
-// }
-
-return (
+  return (
     <View style={styles.container}>
       <View style={styles.grid}>
         {modules.map((mod, index) => (
@@ -50,9 +29,16 @@ return (
 export default HomeScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
-  header: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#fff',
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
   moduleBox: {
     width: '48%',
     backgroundColor: '#f2f2f2',
@@ -61,5 +47,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
-  moduleText: { fontSize: 16 },
+  moduleText: {
+    fontSize: 16,
+  },
 });
