@@ -61,4 +61,9 @@ export const deleteGoodById = async (goodId) => {
   await db.runAsync('DELETE FROM goods WHERE goodId = ?', goodId);
 };
 
-export default db;
+export const getGoodByBarcode = async (barCode) => {
+  if (!db) await initDatabase();
+
+  const row = await db.getFirstAsync('SELECT * FROM goods WHERE barCode = ?', barCode);
+  return row;
+};

@@ -24,8 +24,10 @@ const SettingsScreen = () => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Користувач</Text>
         <Text style={styles.text}>Ім’я: {name || '-'}</Text>
-        <Text style={styles.text}>Ключ: {deviceKey || '-'}</Text>
-        <Text style={styles.text}>Ліцензія: {keyLicense || '—'}</Text>
+        <Text style={styles.text}>Ключ:</Text>
+        <Text style={styles.text}>{deviceKey || '-'}</Text>
+        <Text style={styles.text}>Ліцензія:</Text>
+        <Text style={styles.text}>{keyLicense || '-'}</Text>
       </View>
 
       <View style={styles.section}>
@@ -64,6 +66,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 16,
     marginBottom: 10,
+    
   },
   switchRow: {
     flexDirection: 'row',

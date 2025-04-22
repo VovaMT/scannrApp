@@ -1,4 +1,4 @@
-const API_URL = 'http://10.0.2.2:8080/good';
+const API_URL = 'http://10.0.25.61:8080/good';
 
 export const fetchGoods = async () => {
   const response = await fetch(API_URL);

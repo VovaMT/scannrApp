@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+
 // Основні екрани
 import HomeScreen from '../screens/HomeScreen';
 import SettingsScreen from '../screens/SettingsScreen';

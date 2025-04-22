@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 const modules = [
-  { title: 'Інвентаризація', route: 'Inventory' },
-  { title: 'Переміщення', route: 'Transfer' },
-  { title: 'Резервування', route: 'Reservation' },
-  { title: 'Властивості товару', route: 'ProductProperties' },
+  { title: 'Інвентаризація', route: 'Inventory', icon: 'checkmark-done-circle-outline' },
+  { title: 'Переміщення', route: 'Transfer', icon: 'open-outline' },
+  { title: 'Резервування', route: 'Reservation', icon: 'file-tray-stacked-outline' },
+  { title: 'Властивості товару', route: 'ProductProperties', icon: 'book-outline' },
 ];
 
 const HomeScreen = ({ navigation }) => {
@@ -14,12 +15,17 @@ const HomeScreen = ({ navigation }) => {
       <View style={styles.grid}>
         {modules.map((mod, index) => (
           <TouchableOpacity
-            key={index}
-            style={styles.moduleBox}
-            onPress={() => navigation.navigate(mod.route)}
-          >
+          key={index}
+          style={styles.moduleBox}
+          onPress={() => navigation.navigate(mod.route)}
+        >
+          <View style={styles.iconRow}>
+            <Ionicons name={mod.icon} size={24} color="#333" />
+          </View>
+          <View style={styles.moduleContent}>
             <Text style={styles.moduleText}>{mod.title}</Text>
-          </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
         ))}
       </View>
     </View>
@@ -42,12 +48,20 @@ const styles = StyleSheet.create({
   moduleBox: {
     width: '48%',
     backgroundColor: '#f2f2f2',
-    padding: 20,
+    padding: 15,
     marginBottom: 15,
     borderRadius: 8,
-    alignItems: 'center',
+  },
+  iconRow: {
+    alignItems: 'flex-start',
+    marginBottom: 10,
+  },
+  moduleContent: {
+    justifyContent: 'center',
   },
   moduleText: {
     fontSize: 16,
+    textAlign: 'left',
   },
 });
+
