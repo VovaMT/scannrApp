@@ -1,12 +1,31 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  Alert,
+  StyleSheet,
+  Modal,
+  TouchableOpacity,
+} from 'react-native';
+import { CameraView, Camera } from 'expo-camera';
 import { getGoodByBarcode } from '../../database/db';
-
-
 
 const ProductPropertiesScreen = () => {
   const [barcode, setBarcode] = useState('');
   const [good, setGood] = useState(null);
+  const [scannerVisible, setScannerVisible] = useState(false);
+  const [permission, setPermission] = useState(null);
+  const [scanned, setScanned] = useState(false);
+
+  useEffect(() => {
+    const getPermissions = async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      setPermission(status === 'granted');
+    };
+    getPermissions();
+  }, []);
 
   const handleSearch = async () => {
     if (!barcode.trim()) {
@@ -23,9 +42,15 @@ const ProductPropertiesScreen = () => {
     }
   };
 
+  const handleBarCodeScanned = ({ data }) => {
+    setScanned(true);
+    setScannerVisible(false);
+    setBarcode(data);
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Введіть штрихкод товару</Text>
+      <Text style={styles.title}>Введіть або відскануйте штрихкод</Text>
 
       <TextInput
         style={styles.input}
@@ -35,7 +60,17 @@ const ProductPropertiesScreen = () => {
         keyboardType="numeric"
       />
 
-      <Button title="Пошук" onPress={handleSearch} />
+      <View style={styles.buttonRow}>
+        <Button title="Пошук" onPress={handleSearch} />
+        <View style={{ width: 10 }} />
+        <Button
+          title="Сканувати"
+          onPress={() => {
+            setScanned(false);
+            setScannerVisible(true);
+          }}
+        />
+      </View>
 
       {good && (
         <View style={styles.result}>
@@ -44,6 +79,29 @@ const ProductPropertiesScreen = () => {
           <Text style={styles.resultText}>Код товару: {good.goodCode}</Text>
         </View>
       )}
+
+      
+      <Modal visible={scannerVisible} animationType="slide">
+        <View style={styles.scannerContainer}>
+          {permission ? (
+            <>
+              <CameraView
+                onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+                barcodeScannerSettings={{ barcodeTypes: ['qr', 'code128', 'ean13', 'ean8'] }}
+                style={StyleSheet.absoluteFillObject}
+              />
+              <TouchableOpacity
+                onPress={() => setScannerVisible(false)}
+                style={styles.closeButton}
+              >
+                <Text style={styles.closeText}>Закрити</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <Text style={styles.permissionText}>Немає доступу до камери</Text>
+          )}
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -68,6 +126,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderRadius: 6,
   },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
   result: {
     marginTop: 20,
     padding: 15,
@@ -77,5 +139,27 @@ const styles = StyleSheet.create({
   resultText: {
     fontSize: 16,
     marginBottom: 6,
+  },
+  scannerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  closeButton: {
+    position: 'absolute',
+    bottom: 50,
+    alignSelf: 'center',
+    backgroundColor: '#000',
+    padding: 12,
+    borderRadius: 8,
+  },
+  closeText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  permissionText: {
+    color: 'red',
+    fontSize: 18,
+    textAlign: 'center',
+    marginTop: 100,
   },
 });

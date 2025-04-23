@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Pressable, View } from 'react-native';
+import { Pressable, View, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 
@@ -34,46 +34,52 @@ const AppNavigator = () => (
           headerShown: !hideHeaderFor.includes(route.name),
           headerTitleAlign: 'center',
           headerLeft: () =>
-            route.name !== 'Home' && !hideHeaderFor.includes(route.name) && (
-              <Pressable onPress={() => navigation.goBack()} style={{ marginRight: 10 }}>
-                <Ionicons name="arrow-back" size={24} />
-              </Pressable>
+            route.name === 'Home' ? (
+                <Image
+                    source={require('../../assets/logo.png')} 
+                    style={{ width: 30, height: 30, marginLeft: 10 }}
+                    resizeMode="contain"
+                />
+            ) : (
+                <Pressable onPress={() => navigation.goBack()} style={{ marginRight: 10 }}>
+                    <Ionicons name="arrow-back" size={24} />
+                </Pressable>
             ),
           headerRight: () =>
             !hideHeaderFor.includes(route.name) && (
-              <View style={{ flexDirection: 'row', gap: 15 }}>
-                <Pressable
-                  onPress={() => navigation.navigate('Download')}
-                  style={{ marginHorizontal: 5 }}
-                >
-                  <Ionicons name="cloud-download-outline" size={24} />
-                </Pressable>
-                <Pressable
-                  onPress={() => navigation.navigate('Settings')}
-                  style={{ marginHorizontal: 5 }}
-                >
-                  <Ionicons name="settings-outline" size={24} />
-                </Pressable>
-              </View>
+                <View style={{ flexDirection: 'row', gap: 15 }}>
+                        <Pressable
+                        onPress={() => navigation.navigate('Download')}
+                        style={{ marginHorizontal: 5 }}
+                        >
+                        <Ionicons name="cloud-download-outline" size={24} />
+                        </Pressable>
+                        <Pressable
+                        onPress={() => navigation.navigate('Settings')}
+                        style={{ marginHorizontal: 5 }}
+                        >
+                        <Ionicons name="settings-outline" size={24} />
+                        </Pressable>
+                </View>
             ),
         };
       }}
     >
-      {/* Авторизація */}
-      <Stack.Screen name="AuthLoading" component={AuthLoadingScreen} />
-      <Stack.Screen name="Registration" component={RegistrationScreen} />
-      <Stack.Screen name="Restricted" component={RestrictedScreen} />
+        {/* Авторизація */}
+        <Stack.Screen name="AuthLoading" component={AuthLoadingScreen} />
+        <Stack.Screen name="Registration" component={RegistrationScreen} />
+        <Stack.Screen name="Restricted" component={RestrictedScreen} />
 
-      {/* Основні екрани */}
-      <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Головна' }} />
-      <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Налаштування' }} />
-      <Stack.Screen name="Download" component={DownloadScreen} options={{ title: 'Завантаження даних' }} />
+        {/* Основні екрани */}
+        <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Головна' }} />
+        <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Налаштування' }} />
+        <Stack.Screen name="Download" component={DownloadScreen} options={{ title: 'Завантаження даних' }} />
 
-      {/* Модулі */}
-      <Stack.Screen name="Inventory" component={InventoryScreen} options={{ title: 'Інвентаризація' }} />
-      <Stack.Screen name="Transfer" component={TransferScreen} options={{ title: 'Переміщення' }} />
-      <Stack.Screen name="Reservation" component={ReservationScreen} options={{ title: 'Резервування' }} />
-      <Stack.Screen name="ProductProperties" component={ProductPropertiesScreen} options={{ title: 'Властивості товару' }} />
+        {/* Модулі */}
+        <Stack.Screen name="Inventory" component={InventoryScreen} options={{ title: 'Інвентаризація' }} />
+        <Stack.Screen name="Transfer" component={TransferScreen} options={{ title: 'Переміщення' }} />
+        <Stack.Screen name="Reservation" component={ReservationScreen} options={{ title: 'Резервування' }} />
+        <Stack.Screen name="ProductProperties" component={ProductPropertiesScreen} options={{ title: 'Властивості товару' }} />
     </Stack.Navigator>
   </NavigationContainer>
 );
