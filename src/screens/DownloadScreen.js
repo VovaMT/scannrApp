@@ -1,13 +1,7 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Button,
-  Alert,
-} from 'react-native';
-import { initDB, clearGoods, insertGoods } from '../database/db';
-import { fetchGoods } from '../api/goodsApi';
+import React, { useState } from "react";
+import { View, Text, StyleSheet, Button, Alert } from "react-native";
+import { initDB, clearGoods, insertGoods } from "../database/db";
+import { fetchGoods } from "../api/goodsApi";
 
 const DownloadScreen = () => {
   const [loading, setLoading] = useState(false);
@@ -30,10 +24,10 @@ const DownloadScreen = () => {
       await insertGoods(goods);
       setProgress(1);
 
-      Alert.alert('Дані успішно збережено у SQLite!');
+      Alert.alert("Дані успішно збережено у SQLite!");
     } catch (error) {
-      console.error('Помилка завантаження:', error);
-      Alert.alert('Помилка', error.message || 'Не вдалося завантажити дані');
+      console.error("Помилка завантаження:", error);
+      Alert.alert("Помилка", error.message || "Не вдалося завантажити дані");
     } finally {
       setProgress(0);
       setLoading(false);
@@ -46,13 +40,15 @@ const DownloadScreen = () => {
 
       <View style={styles.buttonWrapper}>
         <Button
-          title={loading ? 'Завантаження...' : 'Завантажити'}
+          title={loading ? "Завантаження..." : "Завантажити"}
           onPress={fetchAndStoreGoods}
           disabled={loading}
         />
         {loading && (
           <View style={styles.progressLine}>
-            <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
+            <View
+              style={[styles.progressFill, { width: `${progress * 100}%` }]}
+            />
           </View>
         )}
       </View>
@@ -65,34 +61,34 @@ export default DownloadScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     padding: 24,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   title: {
     fontSize: 22,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: "600",
+    textAlign: "center",
     marginBottom: 30,
   },
   buttonWrapper: {
-    width: '100%',
+    width: "100%",
     marginTop: 20,
-    position: 'relative',
+    position: "relative",
   },
   progressLine: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -2,
     left: 0,
     right: 0,
     height: 4,
-    backgroundColor: '#ddd',
+    backgroundColor: "#ddd",
     borderRadius: 2,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   progressFill: {
-    height: '100%',
-    backgroundColor: '#6b8e23',
+    height: "100%",
+    backgroundColor: "#6b8e23",
     borderRadius: 2,
   },
 });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,34 +7,37 @@ import {
   Alert,
   StyleSheet,
   TouchableOpacity,
-} from 'react-native';
-import uuid from 'react-native-uuid';
-import { saveUserData } from '../utils/storage';
-import { registerUser } from '../api/authApi';
+} from "react-native";
+import uuid from "react-native-uuid";
+import { saveUserData } from "../utils/storage";
+import { registerUser } from "../api/authApi";
 
 const RegistrationScreen = ({ navigation }) => {
-  const [name, setName] = useState('');
-  const [deviceKey, setDeviceKey] = useState('');
+  const [name, setName] = useState("");
+  const [deviceKey, setDeviceKey] = useState("");
   const [registerDisabled, setRegisterDisabled] = useState(false);
 
-  const handleRegister = async () => {
+  useEffect(() => {
     const newKey = uuid.v4();
+    setDeviceKey(newKey);
+  }, []);
+
+  const handleRegister = async () => {
     setRegisterDisabled(true);
 
     try {
-      const success = await registerUser(name, newKey);
+      const success = await registerUser(name, deviceKey);
 
       if (success === true) {
-        await saveUserData(name, newKey);
-        setDeviceKey(newKey);
-        navigation.replace('Restricted');
+        await saveUserData(name, deviceKey);
+        navigation.replace("Restricted");
       } else {
         setRegisterDisabled(false);
-        Alert.alert('Помилка', success?.error || 'Щось пішло не так');
+        Alert.alert("Помилка", success?.error || "Щось пішло не так");
       }
     } catch (error) {
       setRegisterDisabled(false);
-      Alert.alert('Помилка', error.message || 'Не вдалося виконати реєстрацію');
+      Alert.alert("Помилка", error.message || "Не вдалося виконати реєстрацію");
     }
   };
 
@@ -42,7 +45,7 @@ const RegistrationScreen = ({ navigation }) => {
     <View style={styles.container}>
       <Image
         style={styles.logo}
-        source={require('../../assets/big_logo.png')} 
+        source={require("../../assets/big_logo.png")}
         resizeMode="contain"
       />
       <TextInput
@@ -78,9 +81,9 @@ export default RegistrationScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   logo: {
@@ -89,29 +92,29 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   input: {
-    width: '100%',
+    width: "100%",
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 5,
     padding: 12,
     marginBottom: 20,
-    color: '#000',
-    backgroundColor: '#f9f9f9',
+    color: "#000",
+    backgroundColor: "#f9f9f9",
   },
   button: {
-    backgroundColor: '#6b8e23',
+    backgroundColor: "#6b8e23",
     paddingVertical: 15,
     paddingHorizontal: 40,
     borderRadius: 5,
-    width: '100%',
-    alignItems: 'center',
+    width: "100%",
+    alignItems: "center",
   },
   buttonDisabled: {
-    backgroundColor: '#a9a9a9',
+    backgroundColor: "#a9a9a9",
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
     fontSize: 16,
   },
 });

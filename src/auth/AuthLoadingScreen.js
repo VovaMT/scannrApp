@@ -1,19 +1,18 @@
-import React, { useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import { getUserData } from '../utils/storage';
-import { checkLicense } from '../api/authApi';
+import React, { useEffect } from "react";
+import { View, ActivityIndicator, StyleSheet } from "react-native";
+import { getUserData } from "../utils/storage";
 
 const AuthLoadingScreen = ({ navigation }) => {
   useEffect(() => {
     const checkAuth = async () => {
-      const { key, license } = await getUserData();
+      const { key, hasLicense } = await getUserData();
 
       if (!key) {
-        navigation.replace('Registration');
-      } else if (!license) {
-        navigation.replace('Restricted');
+        navigation.replace("Registration");
+      } else if (!hasLicense) {
+        navigation.replace("Restricted");
       } else {
-        navigation.replace('Home');
+        navigation.replace("Home");
       }
     };
 
@@ -30,5 +29,5 @@ const AuthLoadingScreen = ({ navigation }) => {
 export default AuthLoadingScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  container: { flex: 1, justifyContent: "center", alignItems: "center" },
 });

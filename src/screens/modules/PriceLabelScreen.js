@@ -1,13 +1,13 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 
-const ReservationScreen = () => (
+const PriceLabelScreen = () => (
   <View style={styles.container}>
-    <Text style={styles.text}>Резервування</Text>
+    <Text style={styles.text}>Цінники</Text>
   </View>
 );
 
-export default ReservationScreen;
+export default PriceLabelScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center", alignItems: "center" },
