@@ -11,6 +11,7 @@ import DownloadScreen from "../screens/DownloadScreen";
 
 // Модулі
 import InventoryScreen from "../screens/modules/InventoryScreen";
+import InventoryScanScreen from "../screens/modules/InventoryScanScreen";
 import TransferScreen from "../screens/modules/TransferScreen";
 import ReservationScreen from "../screens/modules/ReservationScreen";
 import ProductPropertiesScreen from "../screens/modules/ProductPropertiesScreen";
@@ -97,6 +98,7 @@ const AppNavigator = () => (
         component={InventoryScreen}
         options={{ title: "Інвентаризація" }}
       />
+      <Stack.Screen name="InventoryScanScreen" component={InventoryScanScreen} />
       <Stack.Screen
         name="Transfer"
         component={TransferScreen}

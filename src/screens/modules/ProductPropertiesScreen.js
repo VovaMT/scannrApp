@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect } from "react";
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import {
   View,
   Text,
@@ -8,15 +8,15 @@ import {
   StyleSheet,
   Modal,
   TouchableOpacity,
-  Pressable,
-} from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
-import { CameraView, Camera } from "expo-camera";
-import { getGoodByBarcode } from "../../database/db";
+  Pressable
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import { CameraView, Camera } from 'expo-camera';
+import { getGoodByBarcode } from '../../database/db';
 
 const ProductPropertiesScreen = () => {
-  const [barcode, setBarcode] = useState("");
+  const [barcode, setBarcode] = useState('');
   const [good, setGood] = useState(null);
   const [scannerVisible, setScannerVisible] = useState(false);
   const [permission, setPermission] = useState(null);
@@ -25,7 +25,7 @@ const ProductPropertiesScreen = () => {
   useEffect(() => {
     const getPermissions = async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
-      setPermission(status === "granted");
+      setPermission(status === 'granted');
     };
     getPermissions();
   }, []);
@@ -35,13 +35,10 @@ const ProductPropertiesScreen = () => {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <Pressable
-          onPress={() => {
-            setScanned(false);
-            setScannerVisible(true);
-          }}
-          style={{ marginRight: 15 }}
-        >
+        <Pressable onPress={() => {
+          setScanned(false);
+          setScannerVisible(true);
+        }} style={{ marginRight: 15 }}>
           <Ionicons name="camera-outline" size={24} />
         </Pressable>
       ),
@@ -50,7 +47,7 @@ const ProductPropertiesScreen = () => {
 
   const handleSearch = async () => {
     if (!barcode.trim()) {
-      Alert.alert("Помилка", "Введіть штрихкод");
+      Alert.alert('Помилка', 'Введіть штрихкод');
       return;
     }
 
@@ -59,7 +56,7 @@ const ProductPropertiesScreen = () => {
       setGood(result);
     } else {
       setGood(null);
-      Alert.alert("Не знайдено", "Товар з таким штрихкодом не знайдено");
+      Alert.alert('Не знайдено', 'Товар з таким штрихкодом не знайдено');
     }
   };
 
@@ -101,15 +98,14 @@ const ProductPropertiesScreen = () => {
         </View>
       )}
 
+      
       <Modal visible={scannerVisible} animationType="slide">
         <View style={styles.scannerContainer}>
           {permission ? (
             <>
               <CameraView
                 onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
-                barcodeScannerSettings={{
-                  barcodeTypes: ["qr", "code128", "ean13", "ean8"],
-                }}
+                barcodeScannerSettings={{ barcodeTypes: ['qr', 'code128', 'ean13', 'ean8'] }}
                 style={StyleSheet.absoluteFillObject}
               />
               <TouchableOpacity
@@ -134,28 +130,28 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 24,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
   },
   title: {
     fontSize: 20,
     marginBottom: 16,
-    textAlign: "center",
+    textAlign: 'center',
   },
   input: {
     borderWidth: 1,
-    borderColor: "#aaa",
+    borderColor: '#aaa',
     padding: 12,
     marginBottom: 12,
     borderRadius: 6,
   },
   buttonRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   result: {
     marginTop: 20,
     padding: 15,
-    backgroundColor: "#f2f2f2",
+    backgroundColor: '#f2f2f2',
     borderRadius: 8,
   },
   resultText: {
@@ -164,24 +160,24 @@ const styles = StyleSheet.create({
   },
   scannerContainer: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   closeButton: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 50,
-    alignSelf: "center",
-    backgroundColor: "#000",
+    alignSelf: 'center',
+    backgroundColor: '#000',
     padding: 12,
     borderRadius: 8,
   },
   closeText: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 16,
   },
   permissionText: {
-    color: "red",
+    color: 'red',
     fontSize: 18,
-    textAlign: "center",
+    textAlign: 'center',
     marginTop: 100,
   },
 });

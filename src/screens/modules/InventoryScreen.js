@@ -1,87 +1,103 @@
-import React, { useState, useEffect, useLayoutEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Button,
-  Alert,
-  StyleSheet,
-  Modal,
-  TouchableOpacity,
-  Pressable,
-} from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
-import { CameraView, Camera } from "expo-camera";
-import { getGoodByBarcode } from "../../database/db";
+import React, { useEffect, useState, useLayoutEffect } from "react";
+import { View, Text, FlatList, StyleSheet, Alert, TouchableOpacity } from "react-native";
+import { getInventoryItems, clearInventory } from "../../database/inventory";
+import { getNameGoodByGoodCode } from "../../database/db";
+import { Ionicons } from "@expo/vector-icons"; 
 
 
+const InventoryScreen = ({ navigation }) => {
+  const [items, setItems] = useState([]);
 
-const InventoryScreen = () => {
-  const [barcode, setBarcode] = useState("");
-  const [good, setGood] = useState(null);
-  const [scannerVisible, setScannerVisible] = useState(false);
-  const [permission, setPermission] = useState(null);
-  const [scanned, setScanned] = useState(false);
+  const loadItems = async () => {
+    const result = await getInventoryItems();
+    setItems(result);
+  };
 
   useEffect(() => {
-    const getPermissions = async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setPermission(status === "granted");
-    };
-    getPermissions();
-  }, []);
-
-  const navigation = useNavigation();
+    const unsubscribe = navigation.addListener("focus", loadItems);
+    return unsubscribe;
+  }, [navigation]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <Pressable
-          onPress={() => {
-            setScanned(false);
-            setScannerVisible(true);
-          }}
-          style={{ marginRight: 15 }}
-        >
-          <Ionicons name="camera-outline" size={24} />
-        </Pressable>
+        <View style={{ flexDirection: "row", gap: 15 }}>
+           <TouchableOpacity onPress={uploadList}>
+            <Ionicons name="cloud-upload-outline" size={24} color="black" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate("InventoryScanScreen")}>
+            <Ionicons name="scan-outline" size={24} color="black" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleClearList}>
+            <Ionicons name="trash-outline" size={24} color="red" />
+          </TouchableOpacity>
+        </View>
       ),
     });
   }, [navigation]);
 
-  const handleSearch = async () => {
-    if (!barcode.trim()) {
-      Alert.alert("Помилка", "Введіть штрихкод");
-      return;
-    }
-
-    const result = await getGoodByBarcode(barcode);
-    if (result) {
-      setGood(result);
-    } else {
-      setGood(null);
-      Alert.alert("Не знайдено", "Товар з таким штрихкодом не знайдено");
-    }
+  const handleClearList = () => {
+    Alert.alert("Очистити список?", "", [
+      { text: "Скасувати", style: "cancel" },
+      {
+        text: "Так",
+        onPress: async () => {
+          await clearInventory();
+          loadItems();
+        },
+      },
+    ]);
   };
 
-  const handleBarCodeScanned = ({ data }) => {
-    setScanned(true);
-    setScannerVisible(false);
-    setBarcode(data);
+  const uploadList = () => {
+    Alert.alert("Надіслати результати?", "", [
+      { text: "Скасувати", style: "cancel" },
+      {
+        text: "Так",
+        onPress: async () => {
+          await clearInventory();
+          loadItems();
+        },
+      },
+    ]);
   };
 
   return (
     <View style={styles.container}>
-    <Text style={styles.text}>Модуль інвентаризації</Text>
-  </View>
+      {items.length === 0 ? (
+        <Text style={styles.emptyText}>Список порожній</Text>
+      ) : (
+        <FlatList
+          data={items}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.item}>
+              <Text>{getNameGoodByGoodCode(item.goodCode)}</Text>
+              <Text>{item.goodCode}</Text>
+              <Text>Кількість: {item.quantity}</Text>
+            </View>
+          )}
+        />
+      )}
+    </View>
   );
 };
-
 
 export default InventoryScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center" },
-  text: { fontSize: 18 },
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+  emptyText: {
+    marginTop: 20,
+    fontSize: 18,
+    textAlign: "center",
+  },
+  item: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderColor: "#ccc",
+  },
 });

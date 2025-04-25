@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://10.0.25.51:8080";
+const API_BASE_URL = "http://10.0.25.50:8080";
 
 export const registerUser = async (name, key) => {
   const response = await fetch(`${API_BASE_URL}/registration`, {

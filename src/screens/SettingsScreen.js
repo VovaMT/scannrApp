@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Switch } from "react-native";
-import { getUserData } from "../utils/storage";
+import { getUserData, saveUseCameraSetting, getUseCameraSetting } from "../utils/storage";
 
 const SettingsScreen = () => {
   const [name, setName] = useState("");
@@ -8,12 +8,19 @@ const SettingsScreen = () => {
   const [useCamera, setUseCamera] = useState(false);
   const [hasLicense, setHasLicense] = useState(false);
 
+  const toggleSwitch = async (value) => {
+    setUseCamera(value);
+    await saveUseCameraSetting(value);
+  };
+
   useEffect(() => {
     const loadUser = async () => {
       const { name, key, hasLicense } = await getUserData();
+      const useCameraSetting = await getUseCameraSetting();
       if (name) setName(name);
       if (key) setDeviceKey(key);
-      if (hasLicense) setHasLicense(hasLicense);
+      if (hasLicense === "true") setHasLicense(true);
+      setUseCamera(useCameraSetting);
     };
 
     loadUser();
@@ -35,7 +42,7 @@ const SettingsScreen = () => {
           <Text style={styles.text}>Використовувати камеру</Text>
           <Switch
             value={useCamera}
-            onValueChange={(value) => setUseCamera(value)}
+            onValueChange={toggleSwitch}
           />
         </View>
       </View>
