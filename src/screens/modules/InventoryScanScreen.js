@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
 import {
     View,
     Text,
@@ -8,7 +8,6 @@ import {
     Alert,
     Pressable,
     Modal,
-    TouchableWithoutFeedback,
     Keyboard,
 } from "react-native";
 import { getGoodByBarcode } from "../../database/db";
@@ -26,6 +25,9 @@ const InventoryScanScreen = ({ navigation }) => {
     const [permission, setPermission] = useState(null);
     const [scanned, setScanned] = useState(false);
     const [allowCamera, setAllowCamera] = useState(false);
+    const [editable, setEditable] = useState(false);
+
+    const inputRef = useRef(null);
 
     useEffect(() => {
         const getPermissions = async () => {
@@ -35,6 +37,12 @@ const InventoryScanScreen = ({ navigation }) => {
             setAllowCamera(allow);
         };
         getPermissions();
+    }, []);
+
+    useEffect(() => {
+        requestAnimationFrame(() => {
+            inputRef.current?.focus();
+        });
     }, []);
 
     useLayoutEffect(() => {
@@ -89,98 +97,108 @@ const InventoryScanScreen = ({ navigation }) => {
         }
     };
 
+    const toggleKeyboard = () => {
+        if (editable) {
+            Keyboard.dismiss();
+            setEditable(false);
+        } else {
+            setEditable(true);
+            inputRef.current?.focus();
+        }
+    };
+
     return (
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.container}>
-                <Text>Введіть штрих-код</Text>
-                <View style={styles.barcodeRow}>
-                    <TextInput
-                        value={barcode}
-                        onChangeText={setBarcode}
-                        style={styles.barcodeInput}
-                        keyboardType="numeric"
-                        placeholder="Штрих-код"
-                    />
-                    <TouchableOpacity >
-                        <MaterialCommunityIcons name="keyboard-outline" size={24} color="black" />
-                    </TouchableOpacity>
-                </View>
-                <TouchableOpacity style={styles.findButton} onPress={findGood}>
-                    <Text style={styles.findButtonText}>Пошук</Text>
+        <View style={styles.container}>
+            <Text>Введіть штрих-код</Text>
+            <View style={styles.barcodeRow}>
+                <TextInput
+                    ref={inputRef}
+                    value={barcode}
+                    onChangeText={setBarcode}
+                    style={styles.barcodeInput}
+                    keyboardType="numeric"
+                    placeholder="Штрих-код"
+                    showSoftInputOnFocus={editable}
+                />
+                <TouchableOpacity onPress={toggleKeyboard}>
+                    <MaterialCommunityIcons name="keyboard-outline" size={24} color="black" />
                 </TouchableOpacity>
+            </View>
+            <TouchableOpacity style={styles.findButton} onPress={findGood}>
+                <Text style={styles.findButtonText}>Пошук</Text>
+            </TouchableOpacity>
 
-                {good && (
-                    <View style={styles.card}>
-                        <Text style={styles.label}>Штрих-код:</Text>
-                        <Text style={styles.value}>{barcode}</Text>
+            {good && (
+                <View style={styles.card}>
+                    <Text style={styles.label}>Штрих-код:</Text>
+                    <Text style={styles.value}>{barcode}</Text>
 
-                        <Text style={styles.label}>Назва товару:</Text>
-                        <Text style={styles.value}>{good.name}</Text>
+                    <Text style={styles.label}>Назва товару:</Text>
+                    <Text style={styles.value}>{good.name}</Text>
 
-                        <Text style={styles.label}>Код товару:</Text>
-                        <Text style={styles.value}>{good.goodCode}</Text>
+                    <Text style={styles.label}>Код товару:</Text>
+                    <Text style={styles.value}>{good.goodCode}</Text>
 
-                        <View style={styles.quantityRow}>
-                            <TouchableOpacity
-                                style={styles.circleButton}
-                                onPress={() => {
-                                    const newQty = Math.max(0, parseFloat(quantity || 0) - 1);
-                                    setQuantity(newQty.toString());
-                                }}
-                            >
-                                <Text style={styles.circleButtonText}>-</Text>
-                            </TouchableOpacity>
+                    <View style={styles.quantityRow}>
+                        <TouchableOpacity
+                            style={styles.circleButton}
+                            onPress={() => {
+                                const newQty = Math.max(0, parseFloat(quantity || 0) - 1);
+                                setQuantity(newQty.toString());
+                            }}
+                        >
+                            <Text style={styles.circleButtonText}>-</Text>
+                        </TouchableOpacity>
 
-                            <TextInput
-                                style={styles.quantityInput}
-                                value={quantity}
-                                onChangeText={setQuantity}
-                                keyboardType="numeric"
-                                placeholder="Залишок"
-                            />
+                        <TextInput
+                            style={styles.quantityInput}
+                            value={quantity}
+                            onChangeText={setQuantity}
+                            keyboardType="numeric"
+                            placeholder="Залишок"
+                        />
 
-                            <TouchableOpacity
-                                style={styles.circleButton}
-                                onPress={() => {
-                                    const newQty = parseFloat(quantity || 0) + 1;
-                                    setQuantity(newQty.toString());
-                                }}
-                            >
-                                <Text style={styles.circleButtonText}>+</Text>
-                            </TouchableOpacity>
-                        </View>
-
-                        <TouchableOpacity style={styles.saveButton} onPress={save}>
-                            <Text style={styles.saveButtonText}>ЗБЕРЕГТИ</Text>
+                        <TouchableOpacity
+                            style={styles.circleButton}
+                            onPress={() => {
+                                const newQty = parseFloat(quantity || 0) + 1;
+                                setQuantity(newQty.toString());
+                            }}
+                        >
+                            <Text style={styles.circleButtonText}>+</Text>
                         </TouchableOpacity>
                     </View>
-                )}
 
-                <Modal visible={scannerVisible} animationType="slide">
-                    <View style={styles.scannerContainer}>
-                        {permission ? (
-                            <>
-                                <CameraView
-                                    onBarcodeScanned={scanned ? undefined : barCodeScanned}
-                                    barcodeScannerSettings={{
-                                        barcodeTypes: ["qr", "code128", "ean13", "ean8"],
-                                    }}
-                                    style={StyleSheet.absoluteFillObject}
-                                />
-                                <TouchableOpacity
-                                    onPress={() => setScannerVisible(false)}
-                                    style={styles.closeButton}
-                                >
-                                    <Text style={styles.closeText}>Закрити</Text>
-                                </TouchableOpacity>
-                            </>
-                        ) : (
-                            <Text style={styles.permissionText}>Немає доступу до камери</Text>
-                        )}
-                    </View>
-                </Modal>
-            </View>
-        </TouchableWithoutFeedback>
+                    <TouchableOpacity style={styles.saveButton} onPress={save}>
+                        <Text style={styles.saveButtonText}>ЗБЕРЕГТИ</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
+
+            <Modal visible={scannerVisible} animationType="slide">
+                <View style={styles.scannerContainer}>
+                    {permission ? (
+                        <>
+                            <CameraView
+                                onBarcodeScanned={scanned ? undefined : barCodeScanned}
+                                barcodeScannerSettings={{
+                                    barcodeTypes: ["qr", "code128", "ean13", "ean8"],
+                                }}
+                                style={StyleSheet.absoluteFillObject}
+                            />
+                            <TouchableOpacity
+                                onPress={() => setScannerVisible(false)}
+                                style={styles.closeButton}
+                            >
+                                <Text style={styles.closeText}>Закрити</Text>
+                            </TouchableOpacity>
+                        </>
+                    ) : (
+                        <Text style={styles.permissionText}>Немає доступу до камери</Text>
+                    )}
+                </View>
+            </Modal>
+        </View>
     );
 };
 
