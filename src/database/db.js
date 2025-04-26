@@ -106,6 +106,16 @@ export const getGoodByBarcode = async (barCode) => {
   return row;
 };
 
+export const getGoodByGoodcode = async (goodCode) => {
+  if (!db) await initDatabase();
+
+  const row = await db.getFirstAsync(
+    "SELECT * FROM goods WHERE goodCode = ?",
+    goodCode
+  );
+  return row;
+};
+
 export const getNameGoodByGoodCode = async (goodCode) => {
   if (!db) await initDatabase();
 
