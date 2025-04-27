@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Switch } from "react-native";
+import { Camera } from "expo-camera";
 import { getUserData, saveUseCameraSetting, getUseCameraSetting } from "../utils/storage";
 
 const SettingsScreen = () => {
@@ -9,6 +10,15 @@ const SettingsScreen = () => {
   const [hasLicense, setHasLicense] = useState(false);
 
   const toggleSwitch = async (value) => {
+    if (value) {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        setUseCamera(false);
+        await saveUseCameraSetting(false);
+        return;
+      }
+    }
+  
     setUseCamera(value);
     await saveUseCameraSetting(value);
   };

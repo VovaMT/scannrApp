@@ -22,6 +22,7 @@ const InventoryCardScreen = ({ navigation, route }) => {
   const [good, setGood] = useState(null);
   const [quantity, setQuantity] = useState("1");
   const [existingQuantity, setExistingQuantity] = useState(null);
+  const [step, setStep] = useState(1);
   const isScanMode = !!barcode;
 
   useEffect(() => {
@@ -42,14 +43,26 @@ const InventoryCardScreen = ({ navigation, route }) => {
 
       setGood(result);
 
+      if (result.isWeightGood) {
+        setStep(0.1);
+      } else {
+        setStep(1);
+      }
+
       const existing = await getInventoryGoodByGoodCode(result.goodCode);
       if (existing) {
         setExistingQuantity(existing.quantity);
 
         if (!isScanMode) {
-          // Якщо редагування — показуємо поточну кількість
+          // Якщо редагування
           setQuantity(existing.quantity.toString());
+        } else {
+          // Якщо повторне сканування
+          setQuantity(result.isWeightGood ? "0.1" : "1");
         }
+      } else {
+        // Якщо товар новий
+        setQuantity(result.isWeightGood ? "0.1" : "1");
       }
     };
 
@@ -63,7 +76,7 @@ const InventoryCardScreen = ({ navigation, route }) => {
 
     if (isScanMode) {
       const totalQuantity = existingQuantity
-        ? existingQuantity + numericQuantity
+        ? Math.round((existingQuantity + numericQuantity) * 1000) / 1000
         : numericQuantity;
 
       await addOrUpdateInventoryItem(good.goodCode, totalQuantity, 1);
@@ -75,6 +88,18 @@ const InventoryCardScreen = ({ navigation, route }) => {
   };
 
   if (!good) return null;
+
+  const onPressMinus = () => {
+    let current = parseFloat(quantity || 0);
+    let newQty = Math.max(0, Math.round((current - step) * 1000) / 1000);
+    setQuantity(newQty.toString());
+  };
+
+  const onPressPlus = () => {
+    let current = parseFloat(quantity || 0);
+    let newQty = Math.round((current + step) * 1000) / 1000;
+    setQuantity(newQty.toString());
+  };
 
   return (
     <View style={styles.container}>
@@ -99,13 +124,7 @@ const InventoryCardScreen = ({ navigation, route }) => {
         )}
 
         <View style={styles.quantityRow}>
-          <TouchableOpacity
-            style={styles.circleButton}
-            onPress={() => {
-              const newQty = Math.max(0, parseFloat(quantity || 0) - 1);
-              setQuantity(newQty.toString());
-            }}
-          >
+          <TouchableOpacity style={styles.circleButton} onPress={onPressMinus}>
             <Text style={styles.circleButtonText}>-</Text>
           </TouchableOpacity>
 
@@ -117,13 +136,7 @@ const InventoryCardScreen = ({ navigation, route }) => {
             placeholder="Кількість"
           />
 
-          <TouchableOpacity
-            style={styles.circleButton}
-            onPress={() => {
-              const newQty = parseFloat(quantity || 0) + 1;
-              setQuantity(newQty.toString());
-            }}
-          >
+          <TouchableOpacity style={styles.circleButton} onPress={onPressPlus}>
             <Text style={styles.circleButtonText}>+</Text>
           </TouchableOpacity>
         </View>

@@ -12,19 +12,21 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { getInventoryItems, clearInventory } from "../../database/inventory";
 import { getNameGoodByGoodCode } from "../../database/db";
-import { CameraView, Camera } from "expo-camera";
+import { CameraView } from "expo-camera";
 import { getUseCameraSetting } from "../../utils/storage";
 
 const InventoryScreen = ({ navigation }) => {
   const [items, setItems] = useState([]);
   const [barcode, setBarcode] = useState("");
   const [scannerVisible, setScannerVisible] = useState(false);
-  const [permission, setPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [allowCamera, setAllowCamera] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", loadItems);
+    const unsubscribe = navigation.addListener("focus", () => {
+      loadItems();
+      loadSettings();
+    });
     return unsubscribe;
   }, [navigation]);
 
@@ -36,7 +38,11 @@ const InventoryScreen = ({ navigation }) => {
     })));
     setItems(itemsWithNames);
   };
-  
+
+  const loadSettings = async () => {
+    const allow = await getUseCameraSetting();
+    setAllowCamera(allow);
+  };
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -58,27 +64,16 @@ const InventoryScreen = ({ navigation }) => {
     });
   }, [navigation, allowCamera]);
 
-  useEffect(() => {
-    const initPermissions = async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setPermission(status === "granted");
-      const allow = await getUseCameraSetting();
-      setAllowCamera(allow);
-    };
-    initPermissions();
-  }, []);
-
   const openScanner = () => {
     setScanned(false);
     setScannerVisible(true);
   };
 
-  const barCodeScanned = async ({ data }) => {
+  const barCodeScanned = ({ data }) => {
     if (scanned) return;
     setScanned(true);
     setScannerVisible(false);
     navigation.navigate("InventoryCard", { barcode: data });
-
   };
 
   const handleClearList = () => {
@@ -157,7 +152,7 @@ const InventoryScreen = ({ navigation }) => {
 
       <Modal visible={scannerVisible} animationType="slide">
         <View style={styles.scannerContainer}>
-          {permission ? (
+          {allowCamera ? (
             <>
               <CameraView
                 onBarcodeScanned={scanned ? undefined : barCodeScanned}
