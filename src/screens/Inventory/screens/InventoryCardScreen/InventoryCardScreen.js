@@ -1,0 +1,130 @@
+import React, { useState, useEffect } from "react";
+import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
+import { addOrUpdateInventoryGood , getInventoryGoodByGoodCode } from "../../../../services/database/inventoryService";
+import { getGoodByBarcode, getGoodByGoodcode } from "../../../../services/database/goodsService";
+import styles from "./styles";
+
+const InventoryCardScreen = ({ navigation, route }) => {
+  const { barcode, goodCode } = route.params;
+  const [good, setGood] = useState(null);
+  const [quantity, setQuantity] = useState("1");
+  const [existingQuantity, setExistingQuantity] = useState(null);
+  const [step, setStep] = useState(1);
+  const isScanMode = !!barcode;
+
+  useEffect(() => {
+    const loadGood = async () => {
+      let result = null;
+
+      if (barcode) {
+        result = await getGoodByBarcode(barcode);
+      } else if (goodCode) {
+        result = await getGoodByGoodcode(goodCode);
+      }
+
+      if (!result) {
+        Alert.alert("Помилка", "Товар не знайдено");
+        navigation.goBack();
+        return;
+      }
+
+      setGood(result);
+      setStep(result.isWeightGood ? 0.1 : 1);
+
+      const existing = await getInventoryGoodByGoodCode(result.goodCode);
+      if (existing) {
+        setExistingQuantity(existing.quantity);
+        setQuantity(!isScanMode ? existing.quantity.toString() : result.isWeightGood ? "0.1" : "1");
+      } else {
+        setQuantity(result.isWeightGood ? "0.1" : "1");
+      }
+    };
+
+    loadGood();
+  }, [barcode, goodCode]);
+
+  const save = async () => {
+    if (!good) return;
+
+    const numericQuantity = parseFloat(quantity || 0);
+
+    if (isScanMode) {
+      const totalQuantity = existingQuantity
+        ? Math.round((existingQuantity + numericQuantity) * 1000) / 1000
+        : numericQuantity;
+      await addOrUpdateInventoryGood (good.goodCode, totalQuantity, 1);
+    } else {
+      await addOrUpdateInventoryGood (good.goodCode, numericQuantity, 1);
+    }
+
+    navigation.goBack();
+  };
+
+  if (!good) return null;
+
+  const onPressMinus = () => {
+    const current = parseFloat(quantity || 0);
+    const newQty = Math.max(0, Math.round((current - step) * 1000) / 1000);
+    setQuantity(newQty.toString());
+  };
+
+  const onPressPlus = () => {
+    const current = parseFloat(quantity || 0);
+    const newQty = Math.round((current + step) * 1000) / 1000;
+    setQuantity(newQty.toString());
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.card}>
+        {barcode && (
+          <>
+            <Text style={styles.label}>Штрих-код:</Text>
+            <Text style={styles.value}>{barcode}</Text>
+          </>
+        )}
+
+        <Text style={styles.label}>Назва товару:</Text>
+        <Text style={styles.value}>{good.name}</Text>
+
+        <Text style={styles.label}>Код товару:</Text>
+        <Text style={styles.value}>{good.goodCode}</Text>
+
+        {existingQuantity !== null && isScanMode && (
+          <Text style={styles.infoText}>
+            Цей товар вже скановано. Поточна кількість: {existingQuantity}
+          </Text>
+        )}
+
+        <View style={styles.quantityRow}>
+          <TouchableOpacity style={styles.circleButton} onPress={onPressMinus}>
+            <Text style={styles.circleButtonText}>-</Text>
+          </TouchableOpacity>
+
+          <TextInput
+            style={styles.quantityInput}
+            value={quantity}
+            onChangeText={setQuantity}
+            keyboardType="numeric"
+            placeholder="Кількість"
+            onFocus={() => {
+              if (quantity === "1" || quantity === "0.1") {
+                setQuantity("");
+              }
+            }}
+          />
+
+          <TouchableOpacity style={styles.circleButton} onPress={onPressPlus}>
+            <Text style={styles.circleButtonText}>+</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity style={styles.saveButton} onPress={save}>
+          <Text style={styles.saveButtonText}>ЗБЕРЕГТИ</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
+export default InventoryCardScreen;
