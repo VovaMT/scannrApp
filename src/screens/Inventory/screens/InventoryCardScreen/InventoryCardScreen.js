@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
-import { addOrUpdateInventoryGood, getInventoryGoodByGoodCode } from "services/database/inventoryService";
-import { getGoodByBarcode, getGoodByGoodcode } from "services/database/goodsService";
+import {
+  addOrUpdateInventoryGood,
+  getInventoryGoodByGoodCode,
+} from "services/database/inventoryService";
+import {
+  getGoodByBarcode,
+  getGoodByGoodcode,
+} from "services/database/goodsService";
 import { validateQuantityInput } from "utils/inputUtils";
+import { parseWeightBarcode } from "utils/parseWeightBarcode";
 import styles from "./styles";
 
 const InventoryCardScreen = ({ navigation, route }) => {
@@ -16,9 +23,20 @@ const InventoryCardScreen = ({ navigation, route }) => {
   useEffect(() => {
     const loadGood = async () => {
       let result = null;
+      let resolvedQuantity = "1";
 
       if (barcode) {
         result = await getGoodByBarcode(barcode);
+
+        if (!result) {
+          const parsed = parseWeightBarcode(barcode);
+          if (parsed) {
+            result = await getGoodByBarcode(parsed.productCode);
+            if (result) {
+              resolvedQuantity = parsed.weightInKg.toString();
+            }
+          }
+        }
       } else if (goodCode) {
         result = await getGoodByGoodcode(goodCode);
       }
@@ -35,9 +53,9 @@ const InventoryCardScreen = ({ navigation, route }) => {
       const existing = await getInventoryGoodByGoodCode(result.goodCode);
       if (existing) {
         setExistingQuantity(existing.quantity);
-        setQuantity(!isScanMode ? existing.quantity.toString() : result.isWeightGood ? "0.1" : "1");
+        setQuantity(!isScanMode ? existing.quantity.toString() : resolvedQuantity);
       } else {
-        setQuantity(result.isWeightGood ? "0.1" : "1");
+        setQuantity(resolvedQuantity);
       }
     };
 
@@ -114,9 +132,7 @@ const InventoryCardScreen = ({ navigation, route }) => {
             keyboardType="numeric"
             placeholder="Кількість"
             onFocus={() => {
-              if (quantity === "1" || quantity === "0.1") {
-                setQuantity("");
-              }
+              setQuantity("");
             }}
           />
 
