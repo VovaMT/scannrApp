@@ -11,7 +11,8 @@ export const saveUserData = async (name, key, licensed = false) => {
 export const getUserData = async () => {
   const name = await AsyncStorage.getItem("user_name");
   const key = await AsyncStorage.getItem("device_key");
-  const hasLicense = await AsyncStorage.getItem("has_license");
+  const hasLicenseStr = await AsyncStorage.getItem("has_license");
+  const hasLicense = hasLicenseStr === "true";
   return { name, key, hasLicense };
 };
 

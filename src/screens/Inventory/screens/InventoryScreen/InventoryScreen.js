@@ -15,11 +15,16 @@ const InventoryScreen = ({ navigation }) => {
   const [scannerVisible, setScannerVisible] = useState(false);
   const [scanned, setScanned] = useState(false);
   const [allowCamera, setAllowCamera] = useState(false);
+  const hiddenInputRef = useRef(null);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
       loadItems();
       loadSettings();
+
+      setTimeout(() => {
+        hiddenInputRef.current?.focus();
+      }, 500);
     });
     return unsubscribe;
   }, [navigation]);
@@ -126,7 +131,17 @@ const InventoryScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-    
+      {/* Приховане поле для сканера */}
+      <TextInput
+        ref={hiddenInputRef}
+        style={{ height: 0, width: 0, opacity: 0 }}
+        autoFocus
+        value={barcodeScanned}
+        onChangeText={barcodeInput}
+        keyboardType="numeric"
+        showSoftInputOnFocus={false}
+      />
+
       {/* Пошук вручну */}
       <View style={styles.inputRow}>
         <TextInput

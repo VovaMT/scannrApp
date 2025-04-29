@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Switch } from "react-native";
 import { Camera } from "expo-camera";
-import { getUserData, saveUseCameraSetting, getUseCameraSetting } from "../../services/storage/userStorage";
+import { getUserData, saveUseCameraSetting, getUseCameraSetting } from "services/storage/userStorage";
 import styles from "./styles";
 
 const SettingsScreen = () => {
-  const [name, setName] = useState("");
-  const [deviceKey, setDeviceKey] = useState("");
+  const [name, setName] = useState("-");
+  const [deviceKey, setDeviceKey] = useState("-");
   const [useCamera, setUseCamera] = useState(false);
-  const [hasLicense, setHasLicense] = useState(false);
 
   const toggleSwitch = async (value) => {
     if (value) {
@@ -19,19 +18,21 @@ const SettingsScreen = () => {
         return;
       }
     }
-
     setUseCamera(value);
     await saveUseCameraSetting(value);
   };
 
   useEffect(() => {
     const loadUser = async () => {
-      const { name, key, hasLicense } = await getUserData();
-      const useCameraSetting = await getUseCameraSetting();
-      if (name) setName(name);
-      if (key) setDeviceKey(key);
-      if (hasLicense === "true") setHasLicense(true);
-      setUseCamera(useCameraSetting);
+      try {
+        const user = await getUserData();
+        if (user.name) setName(user.name);
+        if (user.key) setDeviceKey(user.key);
+        const useCameraSetting = await getUseCameraSetting();
+        setUseCamera(useCameraSetting);
+      } catch (error) {
+        console.error("Failed to load user data:", error);
+      }
     };
 
     loadUser();
@@ -41,10 +42,8 @@ const SettingsScreen = () => {
     <View style={styles.container}>
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Користувач</Text>
-        <Text style={styles.text}>Ім’я: {name || "-"}</Text>
-        <Text style={styles.text}>Ключ:</Text>
-        <Text style={styles.text}>{deviceKey || "-"}</Text>
-        <Text style={styles.text}>Ліцензія: {hasLicense ? "є" : "відсутня"}</Text>
+        <Text style={styles.text}>Ім’я: {name}</Text>
+        <Text style={styles.text}>Ключ пристрою: {deviceKey}</Text>
       </View>
 
       <View style={styles.section}>

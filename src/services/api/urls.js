@@ -1,6 +1,7 @@
 export const AUTH_ENDPOINTS = {
     REGISTER: "/registration",
     CHECK_LICENSE: "/check-license",
+    GET_USER: "/user-info",
   };
   
   export const GOODS_ENDPOINTS = {

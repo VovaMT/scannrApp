@@ -8,10 +8,10 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
-import uuid from "react-native-uuid";
-import { saveUserData } from "../../../services/storage/userStorage";
-import { registerUser } from "../../../services/api/authApi";
-import { big_logo } from "assets"
+import { saveUserData } from "services/storage/userStorage";
+import { registerUser } from "services/api/authApi";
+import { big_logo } from "assets";
+import { fetchDeviceId } from "utils/deviceUtils";
 
 const RegistrationScreen = ({ navigation }) => {
   const [name, setName] = useState("");
@@ -19,18 +19,22 @@ const RegistrationScreen = ({ navigation }) => {
   const [registerDisabled, setRegisterDisabled] = useState(false);
 
   useEffect(() => {
-    const newKey = uuid.v4();
-    setDeviceKey(newKey);
+    const loadDeviceId = async () => {
+      const id = await fetchDeviceId();
+      setDeviceKey(id || "-");
+    };
+
+    loadDeviceId();
   }, []);
 
   const handleRegister = async () => {
     setRegisterDisabled(true);
-
+  
     try {
       const success = await registerUser(name, deviceKey);
-
+  
       if (success === true) {
-        await saveUserData(name, deviceKey);
+        await saveUserData(name, deviceKey); 
         navigation.replace("Restricted");
       } else {
         setRegisterDisabled(false);
