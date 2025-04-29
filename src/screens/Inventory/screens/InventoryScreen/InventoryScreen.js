@@ -1,8 +1,21 @@
 import React, { useEffect, useState, useLayoutEffect, useRef } from "react";
-import { View, Text, TextInput, TouchableOpacity, FlatList, Alert, Keyboard, } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  Alert,
+  Keyboard,
+  TouchableWithoutFeedback,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import InventoryItem from "./InventoryItem";
-import { getInventoryGood, clearInventory, deleteInventoryGood } from "services/database/inventoryService";
+import {
+  getInventoryGood,
+  clearInventory,
+  deleteInventoryGood,
+} from "services/database/inventoryService";
 import { getNameGoodByGoodCode } from "services/database/goodsService";
 import BarcodeScanner from "components/BarcodeScanner";
 import { getUseCameraSetting } from "services/storage/userStorage";
@@ -16,6 +29,7 @@ const InventoryScreen = ({ navigation }) => {
   const [scanned, setScanned] = useState(false);
   const [allowCamera, setAllowCamera] = useState(false);
   const hiddenInputRef = useRef(null);
+  const activeSwipeRef = useRef(null);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
@@ -45,6 +59,13 @@ const InventoryScreen = ({ navigation }) => {
     setAllowCamera(allow);
   };
 
+  const closeActiveSwipe = () => {
+    if (activeSwipeRef.current && activeSwipeRef.current.close) {
+      activeSwipeRef.current.close();
+      activeSwipeRef.current = null;
+    }
+  };
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
@@ -66,6 +87,7 @@ const InventoryScreen = ({ navigation }) => {
   }, [navigation, allowCamera]);
 
   const openScanner = () => {
+    closeActiveSwipe();
     setScanned(false);
     setScannerVisible(true);
   };
@@ -81,10 +103,12 @@ const InventoryScreen = ({ navigation }) => {
   };
 
   const handlePressItem = (goodCode) => {
+    closeActiveSwipe();
     navigation.navigate("InventoryCard", { goodCode });
   };
 
   const uploadList = () => {
+    closeActiveSwipe();
     Alert.alert("Надіслати результати?", "", [
       { text: "Скасувати", style: "cancel" },
       {
@@ -98,6 +122,7 @@ const InventoryScreen = ({ navigation }) => {
   };
 
   const handleClearList = () => {
+    closeActiveSwipe();
     Alert.alert("Очистити список?", "", [
       { text: "Скасувати", style: "cancel" },
       {
@@ -112,8 +137,8 @@ const InventoryScreen = ({ navigation }) => {
 
   const barcodeInput = (text) => {
     setBarcodeScanned(text);
-
     if (text.length === 13) {
+      closeActiveSwipe();
       navigation.navigate("InventoryCard", { barcode: text });
       setBarcodeScanned("");
     }
@@ -125,69 +150,79 @@ const InventoryScreen = ({ navigation }) => {
       Alert.alert("Помилка", "Введіть штрих-код");
       return;
     }
+    closeActiveSwipe();
     setBarcode("");
     navigation.navigate("InventoryCard", { barcode: code });
   };
 
   return (
-    <View style={styles.container}>
-      {/* Приховане поле для сканера */}
-      <TextInput
-        ref={hiddenInputRef}
-        style={{ height: 0, width: 0, opacity: 0 }}
-        autoFocus
-        value={barcodeScanned}
-        onChangeText={barcodeInput}
-        keyboardType="numeric"
-        showSoftInputOnFocus={false}
-      />
-
-      {/* Пошук вручну */}
-      <View style={styles.inputRow}>
+    <TouchableWithoutFeedback
+      onPress={() => {
+        closeActiveSwipe();
+        Keyboard.dismiss();
+      }}
+    >
+      <View style={styles.container}>
         <TextInput
-          value={barcode}
-          onChangeText={setBarcode}
-          style={styles.barcodeInput}
-          placeholder="Введіть штрих-код"
+          ref={hiddenInputRef}
+          style={{ height: 0, width: 0, opacity: 0 }}
+          autoFocus
+          value={barcodeScanned}
+          onChangeText={barcodeInput}
           keyboardType="numeric"
-          showSoftInputOnFocus={true}
+          showSoftInputOnFocus={false}
         />
 
-        <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
-          <Ionicons name="search" size={24} color="white" />
-        </TouchableOpacity>
+        <View style={styles.inputRow}>
+          <TextInput
+            value={barcode}
+            onChangeText={setBarcode}
+            style={styles.barcodeInput}
+            placeholder="Введіть штрих-код"
+            keyboardType="numeric"
+            showSoftInputOnFocus={true}
+          />
+
+          <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+            <Ionicons name="search" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+
+        {items.length === 0 ? (
+          <Text style={styles.emptyText}>Список порожній</Text>
+        ) : (
+          <FlatList
+            data={items}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <InventoryItem
+                item={item}
+                onDelete={handleDeleteItem}
+                onPress={() => handlePressItem(item.goodCode)}
+                onCloseOthers={closeActiveSwipe}
+                registerSwipe={(ref) => {
+                  closeActiveSwipe();
+                  activeSwipeRef.current = ref;
+                }}
+              />
+            )}
+          />
+        )}
+
+        <BarcodeScanner
+          visible={scannerVisible}
+          onClose={() => setScannerVisible(false)}
+          onScanned={({ data }) => {
+            if (!scanned) {
+              setScanned(true);
+              setScannerVisible(false);
+              closeActiveSwipe();
+              navigation.navigate("InventoryCard", { barcode: data });
+            }
+          }}
+        />
       </View>
-
-      {/* Список */}
-      {items.length === 0 ? (
-        <Text style={styles.emptyText}>Список порожній</Text>
-      ) : (
-        <FlatList
-          data={items}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <InventoryItem
-              item={item}
-              onDelete={handleDeleteItem}
-              onPress={() => handlePressItem(item.goodCode)}
-            />
-          )}
-        />
-      )}
-
-      {/* Сканер */}
-      <BarcodeScanner
-        visible={scannerVisible}
-        onClose={() => setScannerVisible(false)}
-        onScanned={({ data }) => {
-          if (!scanned) {
-            setScanned(true);
-            setScannerVisible(false);
-            navigation.navigate("InventoryCard", { barcode: data });
-          }
-        }}
-      />
-    </View>
+    </TouchableWithoutFeedback>
   );
 };
 

@@ -1,14 +1,30 @@
 import React, { useRef } from "react";
-import { View, Text, StyleSheet, Animated, PanResponder, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Animated,
+  PanResponder,
+  TouchableOpacity,
+} from "react-native";
 
-const InventoryItem = ({ item, onDelete, onPress }) => {
+const InventoryItem = ({ item, onDelete, onPress, onCloseOthers, registerSwipe }) => {
   const translateX = useRef(new Animated.Value(0)).current;
+
+  const close = () => {
+    Animated.spring(translateX, {
+      toValue: 0,
+      useNativeDriver: true,
+    }).start();
+  };
+
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       onPanResponderMove: (_, gestureState) => {
-        if (gestureState.dx < 0) { // тільки свайп вліво
+        if (gestureState.dx < 0) {
+          onCloseOthers?.();
           translateX.setValue(gestureState.dx);
         }
       },
@@ -18,11 +34,9 @@ const InventoryItem = ({ item, onDelete, onPress }) => {
             toValue: -100,
             useNativeDriver: true,
           }).start();
+          registerSwipe?.({ close });
         } else {
-          Animated.spring(translateX, {
-            toValue: 0,
-            useNativeDriver: true,
-          }).start();
+          close();
         }
       },
     })
@@ -30,7 +44,6 @@ const InventoryItem = ({ item, onDelete, onPress }) => {
 
   return (
     <View style={styles.itemContainer}>
-      {/* Кнопка під товаром */}
       <View style={styles.hiddenButton}>
         <TouchableOpacity
           style={styles.deleteButton}
@@ -40,12 +53,8 @@ const InventoryItem = ({ item, onDelete, onPress }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Сам товар */}
       <Animated.View
-        style={[
-          styles.itemWrapper,
-          { transform: [{ translateX: translateX }] },
-        ]}
+        style={[styles.itemWrapper, { transform: [{ translateX }] }]}
         {...panResponder.panHandlers}
       >
         <TouchableOpacity style={styles.item} onPress={onPress}>

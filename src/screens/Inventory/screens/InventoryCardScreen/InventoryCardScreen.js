@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
-import { addOrUpdateInventoryGood , getInventoryGoodByGoodCode } from "../../../../services/database/inventoryService";
-import { getGoodByBarcode, getGoodByGoodcode } from "../../../../services/database/goodsService";
+import { addOrUpdateInventoryGood, getInventoryGoodByGoodCode } from "services/database/inventoryService";
+import { getGoodByBarcode, getGoodByGoodcode } from "services/database/goodsService";
+import { validateQuantityInput } from "utils/inputUtils";
 import styles from "./styles";
 
 const InventoryCardScreen = ({ navigation, route }) => {
@@ -52,9 +53,9 @@ const InventoryCardScreen = ({ navigation, route }) => {
       const totalQuantity = existingQuantity
         ? Math.round((existingQuantity + numericQuantity) * 1000) / 1000
         : numericQuantity;
-      await addOrUpdateInventoryGood (good.goodCode, totalQuantity, 1);
+      await addOrUpdateInventoryGood(good.goodCode, totalQuantity, 1);
     } else {
-      await addOrUpdateInventoryGood (good.goodCode, numericQuantity, 1);
+      await addOrUpdateInventoryGood(good.goodCode, numericQuantity, 1);
     }
 
     navigation.goBack();
@@ -104,7 +105,12 @@ const InventoryCardScreen = ({ navigation, route }) => {
           <TextInput
             style={styles.quantityInput}
             value={quantity}
-            onChangeText={setQuantity}
+            onChangeText={(text) => {
+              const validated = validateQuantityInput(text);
+              if (validated !== null) {
+                setQuantity(validated);
+              }
+            }}
             keyboardType="numeric"
             placeholder="Кількість"
             onFocus={() => {
