@@ -1,15 +1,15 @@
-export const parseWeightBarcode = (barcode) => {
-    if (!barcode || barcode.length !== 13) {
-      return null; 
+export const parseWeightBarcode = (code) => {
+    if (!code || code.length !== 13) {
+        return null;
     }
-  
-    const productCode = barcode.substring(0, 8); // 6 цифр - код товару
-    const weightPart = barcode.substring(8, 12); // 4 цифри - вага в грамах
-  
-    const weightInKg = parseInt(weightPart, 10) / 1000; 
-  
+
+    const barCode = code.substring(0, 8); // 8 цифр - код товару
+    const weight = code.substring(8, 12); // 4 цифри - вага в грамах
+
+    const weightInKg = parseInt(weight, 10) / 1000;
+
     return {
-      productCode,
-      weightInKg,
+        barCode,
+        weightInKg,
     };
-  };
+};

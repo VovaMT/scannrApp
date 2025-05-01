@@ -72,12 +72,6 @@ export const getAllGoods = async () => {
   return await db.getAllAsync("SELECT * FROM goods");
 };
 
-export const getGoodById = async (goodId) => {
-  const db = await getDBConnection();
-  await initGoodsTable();
-  return await db.getFirstAsync("SELECT * FROM goods WHERE id = ?", goodId);
-};
-
 export const getGoodByBarcode = async (barCode) => {
   const db = await getDBConnection();
   await initGoodsTable();
@@ -102,3 +96,17 @@ export const deleteGoodById = async (goodId) => {
   await initGoodsTable();
   await db.runAsync("DELETE FROM goods WHERE id = ?", goodId);
 };
+
+export const findGoodByMaskPrefix = async (code) => {
+  const db = await getDBConnection();
+  await initGoodsTable();
+
+  const pattern = `${code}#%`; 
+  const result = await db.getFirstAsync(
+    "SELECT * FROM goods WHERE mask LIKE ?",
+    pattern
+  );
+
+  return result;
+};
+

@@ -7,6 +7,7 @@ import {
 import {
   getGoodByBarcode,
   getGoodByGoodcode,
+  findGoodByMaskPrefix,
 } from "services/database/goodsService";
 import { validateQuantityInput } from "utils/inputUtils";
 import { parseWeightBarcode } from "utils/parseWeightBarcode";
@@ -18,6 +19,7 @@ const InventoryCardScreen = ({ navigation, route }) => {
   const [quantity, setQuantity] = useState("1");
   const [existingQuantity, setExistingQuantity] = useState(null);
   const [step, setStep] = useState(1);
+  const isQuantityValid = parseFloat(quantity) > 0;
   const isScanMode = !!barcode;
 
   useEffect(() => {
@@ -31,7 +33,7 @@ const InventoryCardScreen = ({ navigation, route }) => {
         if (!result) {
           const parsed = parseWeightBarcode(barcode);
           if (parsed) {
-            result = await getGoodByBarcode(parsed.productCode);
+            result = await findGoodByMaskPrefix(parsed.barCode);
             if (result) {
               resolvedQuantity = parsed.weightInKg.toString();
             }
@@ -40,7 +42,6 @@ const InventoryCardScreen = ({ navigation, route }) => {
       } else if (goodCode) {
         result = await getGoodByGoodcode(goodCode);
       }
-
       if (!result) {
         Alert.alert("Помилка", "Товар не знайдено");
         navigation.goBack();
@@ -66,6 +67,16 @@ const InventoryCardScreen = ({ navigation, route }) => {
     if (!good) return;
 
     const numericQuantity = parseFloat(quantity || 0);
+    const isWeight = good.isWeightGood;
+
+    if (
+      (isWeight && (numericQuantity < 0.001 || numericQuantity > 10000)) ||
+      (!isWeight && (numericQuantity < 1 || numericQuantity > 10000)) ||
+      (!isWeight && !Number.isInteger(numericQuantity))
+    ) {
+      Alert.alert("Некоректна кількість");
+      return;
+    }
 
     if (isScanMode) {
       const totalQuantity = existingQuantity
@@ -79,11 +90,12 @@ const InventoryCardScreen = ({ navigation, route }) => {
     navigation.goBack();
   };
 
+
   if (!good) return null;
 
   const onPressMinus = () => {
     const current = parseFloat(quantity || 0);
-    const newQty = Math.max(0, Math.round((current - step) * 1000) / 1000);
+    const newQty = Math.max(step, Math.round((current - step) * 1000) / 1000);
     setQuantity(newQty.toString());
   };
 
@@ -124,7 +136,7 @@ const InventoryCardScreen = ({ navigation, route }) => {
             style={styles.quantityInput}
             value={quantity}
             onChangeText={(text) => {
-              const validated = validateQuantityInput(text);
+              const validated = validateQuantityInput(text, good?.isWeightGood);
               if (validated !== null) {
                 setQuantity(validated);
               }
@@ -141,9 +153,14 @@ const InventoryCardScreen = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.saveButton} onPress={save}>
+        <TouchableOpacity
+          style={[styles.saveButton, !isQuantityValid && { opacity: 0.4 }]}
+          onPress={save}
+          disabled={!isQuantityValid}
+        >
           <Text style={styles.saveButtonText}>ЗБЕРЕГТИ</Text>
         </TouchableOpacity>
+
       </View>
     </View>
   );
