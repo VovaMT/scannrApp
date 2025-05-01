@@ -78,9 +78,9 @@ const InventoryScreen = ({ navigation }) => {
               <Ionicons name="scan-outline" size={24} color="black" />
             </TouchableOpacity>
           )}
-          {/* <TouchableOpacity onPress={handleClearList}>
+          <TouchableOpacity onPress={handleClearList}>
             <Ionicons name="trash-outline" size={24} color="red" />
-          </TouchableOpacity> */}
+          </TouchableOpacity>
         </View>
       ),
     });
