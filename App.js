@@ -1,11 +1,11 @@
 import React from "react";
-import { Provider as PaperProvider } from "react-native-paper";
-import AppNavigator from './src/navigation/NavigationContainer';
+import { Text, View } from "react-native";
+// import AppNavigator from "./src/navigation/NavigationContainer"; 
 
 export default function App() {
   return (
-    <PaperProvider>
-      <AppNavigator />
-    </PaperProvider>
+    <View>
+      <Text>✅ Тест: додаток працює без AppNavigator</Text>
+    </View>
   );
 }
