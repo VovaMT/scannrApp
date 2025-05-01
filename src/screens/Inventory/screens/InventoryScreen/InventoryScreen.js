@@ -69,22 +69,29 @@ const InventoryScreen = ({ navigation }) => {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <View style={{ flexDirection: "row", gap: 15 }}>
-          <TouchableOpacity onPress={uploadList}>
-            <Ionicons name="cloud-upload-outline" size={24} color="black" />
-          </TouchableOpacity>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            minWidth: 100, 
+            marginRight: 10,
+          }}
+        >
           {allowCamera && (
-            <TouchableOpacity onPress={openScanner}>
+            <TouchableOpacity onPress={openScanner} style={{ marginRight: 12 }}>
               <Ionicons name="scan-outline" size={24} color="black" />
             </TouchableOpacity>
           )}
-          <TouchableOpacity onPress={handleClearList}>
-            <Ionicons name="trash-outline" size={24} color="red" />
+  
+          <TouchableOpacity onPress={uploadList}>
+            <Ionicons name="cloud-upload-outline" size={24} color="black" />
           </TouchableOpacity>
         </View>
       ),
     });
   }, [navigation, allowCamera]);
+  
 
   const openScanner = () => {
     closeActiveSwipe();
