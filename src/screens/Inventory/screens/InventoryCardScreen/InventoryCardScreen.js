@@ -143,9 +143,9 @@ const InventoryCardScreen = ({ navigation, route }) => {
             }}
             keyboardType="numeric"
             placeholder="Кількість"
-            onFocus={() => {
-              setQuantity("");
-            }}
+            // onFocus={() => {
+            //   setQuantity("");
+            // }}
           />
 
           <TouchableOpacity style={styles.circleButton} onPress={onPressPlus}>
