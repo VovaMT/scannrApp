@@ -4,7 +4,7 @@ import { migrations } from "./migrations";
 let dbInstance = null;
 
 export const initDatabase = async () => {
-  console.log("Ініціалізую базу...");
+  // console.log("Ініціалізую базу...");
 
   try {
     const db = await SQLite.openDatabaseAsync("scanner.db");
@@ -17,7 +17,6 @@ export const initDatabase = async () => {
 };
 
 export const getDBConnection = async () => {
-  console.log("Отримання підключення...");
   if (!dbInstance) {
     dbInstance = await initDatabase();
     if (!dbInstance) throw new Error("Не вдалося ініціалізувати базу даних");
@@ -48,7 +47,7 @@ export const setDBVersion = async (db, version) => {
 };
 
 export const runMigrations = async () => {
-  console.log("Перевірка міграції...");
+  // console.log("Перевірка міграції...");
   try {
     if (!dbInstance) throw new Error("Базу даних не ініціалізовано");
 

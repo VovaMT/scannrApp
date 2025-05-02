@@ -61,6 +61,8 @@ const InventoryItem = ({ item, onDelete, onPress, onCloseOthers, registerSwipe }
           <Text>{item.name}</Text>
           <Text>{item.goodCode}</Text>
           <Text>Кількість: {item.quantity}</Text>
+          {/* <Text>Час: {item.scannedAt}</Text>
+          <Text>Час: {item.updatedAt}</Text> */}
         </TouchableOpacity>
       </Animated.View>
     </View>

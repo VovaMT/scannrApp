@@ -57,11 +57,6 @@ export const getNameGoodByGoodCode = async (goodCode) => {
   return good ? good.name : null;
 };
 
-export const deleteGoodById = async (goodId) => {
-  const db = await getDBConnection();
-  await db.runAsync("DELETE FROM goods WHERE id = ?", goodId);
-};
-
 export const findGoodByMaskPrefix = async (code) => {
   const db = await getDBConnection();
   const pattern = `${code}#%`;

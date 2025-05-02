@@ -5,28 +5,31 @@ export const clearInventory = async () => {
   await db.runAsync("DELETE FROM inventory");
 };
 
-export const addOrUpdateInventoryGood = async (goodCode, quantity, type) => {
+export const addInventoryGood = async (goodCode, quantity, type) => {
+  const db = await getDBConnection();
+  const now = new Date().toISOString();
+
+  await db.runAsync(
+    `INSERT INTO inventory (goodCode, quantity, type, scannedAt, updatedAt)
+     VALUES (?, ?, ?, ?, ?)`,
+    goodCode,
+    quantity,
+    type,
+    now,
+    now
+  );
+};
+
+export const updateInventoryGoodQuantity = async (goodCode, newQuantity) => {
   const db = await getDBConnection();
 
-  const existing = await db.getFirstAsync(
-    "SELECT * FROM inventory WHERE goodCode = ?", goodCode
+  const now = new Date().toISOString();
+  await db.runAsync(
+    `UPDATE inventory SET quantity = ?, updatedAt = ? WHERE goodCode = ?`,
+    newQuantity,
+    now,
+    goodCode
   );
-
-  if (existing) {
-    await db.runAsync(
-      "UPDATE inventory SET quantity = ? WHERE goodCode = ?",
-      quantity,
-      goodCode
-    );
-  } else {
-    await db.runAsync(
-      `INSERT INTO inventory (goodCode, quantity, type)
-       VALUES (?, ?, ?)`,
-      goodCode,
-      quantity,
-      type
-    );
-  }
 };
 
 export const getInventoryGood = async () => {
@@ -43,3 +46,16 @@ export const deleteInventoryGood = async (goodCode) => {
   const db = await getDBConnection();
   await db.runAsync("DELETE FROM inventory WHERE goodCode = ?", goodCode);
 };
+
+export const getAllInventoryItems = async () => {
+  const db = await getDBConnection();
+  const rows = await db.getAllAsync("SELECT * FROM inventory");
+  return rows.map(row => ({
+    goodCode: row.goodCode,
+    quantity: row.quantity,
+    type: row.type,
+    scannedAt: row.scannedAt,
+    updatedAt: row.updatedAt
+  }));
+};
+

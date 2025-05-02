@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import {
-  addOrUpdateInventoryGood,
+  addInventoryGood,
+  updateInventoryGoodQuantity,
   getInventoryGoodByGoodCode,
 } from "services/database/inventoryService";
 import {
@@ -42,6 +43,7 @@ const InventoryCardScreen = ({ navigation, route }) => {
       } else if (goodCode) {
         result = await getGoodByGoodcode(goodCode);
       }
+
       if (!result) {
         Alert.alert("Помилка", "Товар не знайдено");
         navigation.goBack();
@@ -78,18 +80,16 @@ const InventoryCardScreen = ({ navigation, route }) => {
       return;
     }
 
-    if (isScanMode) {
-      const totalQuantity = existingQuantity
-        ? Math.round((existingQuantity + numericQuantity) * 1000) / 1000
-        : numericQuantity;
-      await addOrUpdateInventoryGood(good.goodCode, totalQuantity, 1);
+    if (existingQuantity !== null) {
+      const totalQuantity = Math.round((existingQuantity + numericQuantity) * 1000) / 1000;
+      await updateInventoryGoodQuantity(good.goodCode, totalQuantity);
     } else {
-      await addOrUpdateInventoryGood(good.goodCode, numericQuantity, 1);
+      await addInventoryGood(good.goodCode, numericQuantity, 1);
     }
+    
 
     navigation.goBack();
   };
-
 
   if (!good) return null;
 
@@ -160,7 +160,6 @@ const InventoryCardScreen = ({ navigation, route }) => {
         >
           <Text style={styles.saveButtonText}>ЗБЕРЕГТИ</Text>
         </TouchableOpacity>
-
       </View>
     </View>
   );

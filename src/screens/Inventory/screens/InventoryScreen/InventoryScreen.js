@@ -10,15 +10,18 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import InventoryItem from "./InventoryItem";
 import {
   getInventoryGood,
   clearInventory,
   deleteInventoryGood,
+  getAllInventoryItems,
 } from "services/database/inventoryService";
 import { getNameGoodByGoodCode } from "services/database/goodsService";
 import BarcodeScanner from "components/BarcodeScanner";
 import { getUseCameraSetting } from "services/storage/userStorage";
+import { syncInventory } from "services/api/inventoryApi";
 import styles from "./styles";
 
 const InventoryScreen = ({ navigation }) => {
@@ -79,7 +82,7 @@ const InventoryScreen = ({ navigation }) => {
           }}
         >
           {allowCamera && (
-            <TouchableOpacity onPress={openScanner} style={{ marginRight: 12 }}>
+            <TouchableOpacity onPress={openScanner} style={{ marginRight: 15 }}>
               <Ionicons name="scan-outline" size={24} color="black" />
             </TouchableOpacity>
           )}
@@ -121,12 +124,42 @@ const InventoryScreen = ({ navigation }) => {
       {
         text: "Так",
         onPress: async () => {
-          await clearInventory();
-          loadItems();
+          const success = await sendInventory();
+          if (success) {
+            await clearInventory();
+            loadItems();
+          }
         },
       },
     ]);
   };
+  
+
+  const sendInventory = async () => {
+    try {
+      const items = await getAllInventoryItems();
+      const deviceKey = await AsyncStorage.getItem("device_key");
+  
+      if (!deviceKey) {
+        Alert.alert("Помилка", "Ключ пристрою не знайдено");
+        return false;
+      }
+  
+      if (!items.length) {
+        Alert.alert("Список порожній");
+        return false;
+      }
+  
+      await syncInventory(items, deviceKey);
+      Alert.alert("Успіх", "Інвентаризацію надіслано на сервер");
+      return true;
+    } catch (error) {
+      console.error("Помилка відправки інвентаризації:", error);
+      Alert.alert("Помилка", error.message || "Не вдалося надіслати інвентаризацію");
+      return false;
+    }
+  };
+  
 
   const handleClearList = () => {
     closeActiveSwipe();
