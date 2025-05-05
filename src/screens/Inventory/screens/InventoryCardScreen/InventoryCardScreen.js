@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import {
-  addInventoryGood,
-  updateInventoryGoodQuantity,
-  getInventoryGoodByGoodCode,
-} from "services/database/inventoryService";
+  addGoodsOperation,
+  updateGoodsOperationQuantity,
+  getGoodsOperationByCodeAndType,
+} from "services/database/goodsOperationsService";
 import {
   getGoodByBarcode,
   getGoodByGoodcode,
@@ -13,6 +13,8 @@ import {
 import { validateQuantityInput } from "utils/inputUtils";
 import { parseWeightBarcode } from "utils/parseWeightBarcode";
 import styles from "./styles";
+
+const INVENTORY_TYPE = 1;
 
 const InventoryCardScreen = ({ navigation, route }) => {
   const { barcode, goodCode } = route.params;
@@ -53,7 +55,7 @@ const InventoryCardScreen = ({ navigation, route }) => {
       setGood(result);
       setStep(result.isWeightGood ? 0.1 : 1);
 
-      const existing = await getInventoryGoodByGoodCode(result.goodCode);
+      const existing = await getGoodsOperationByCodeAndType(result.goodCode, INVENTORY_TYPE);
       if (existing) {
         setExistingQuantity(existing.quantity);
         setQuantity(!isScanMode ? existing.quantity.toString() : resolvedQuantity);
@@ -82,11 +84,10 @@ const InventoryCardScreen = ({ navigation, route }) => {
 
     if (existingQuantity !== null) {
       const totalQuantity = Math.round((existingQuantity + numericQuantity) * 1000) / 1000;
-      await updateInventoryGoodQuantity(good.goodCode, totalQuantity);
+      await updateGoodsOperationQuantity(good.goodCode, totalQuantity, INVENTORY_TYPE);
     } else {
-      await addInventoryGood(good.goodCode, numericQuantity, 1);
+      await addGoodsOperation(good.goodCode, numericQuantity, INVENTORY_TYPE);
     }
-    
 
     navigation.goBack();
   };
@@ -143,9 +144,6 @@ const InventoryCardScreen = ({ navigation, route }) => {
             }}
             keyboardType="numeric"
             placeholder="Кількість"
-            // onFocus={() => {
-            //   setQuantity("");
-            // }}
           />
 
           <TouchableOpacity style={styles.circleButton} onPress={onPressPlus}>

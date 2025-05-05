@@ -1,8 +1,8 @@
 import { API_BASE_URL } from './apiConfig';
 import { INVENTORY_ENDPOINTS } from './urls';
 
-export const syncInventory = async (inventoryItems, deviceKey) => {
-  const response = await fetch(`${API_BASE_URL}${INVENTORY_ENDPOINTS.SYNC}`, {
+export const uploadInventory = async (inventoryItems, deviceKey) => {
+  const response = await fetch(`${API_BASE_URL}${INVENTORY_ENDPOINTS.UPLOAD_RESULTS}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

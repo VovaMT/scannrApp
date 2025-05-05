@@ -32,6 +32,8 @@ const AuthLoadingScreen = ({ navigation }) => {
 
         if (error.message === "User not found") {
           navigation.replace("Registration");
+        } else if (error.message.includes("Network request failed")) {
+          Alert.alert("Помилка", "Немає з'єднання з сервером");
         } else {
           navigation.replace("Restricted");
         }

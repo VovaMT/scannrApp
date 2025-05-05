@@ -2,7 +2,7 @@ import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, View, Image } from "react-native";
-import { logo } from "assets"
+import { logo } from "assets";
 
 // Екрани
 import HomeScreen from "screens/HomeScreen/HomeScreen";
@@ -10,14 +10,22 @@ import SettingsScreen from "screens/SettingsScreen/SettingsScreen";
 import DownloadScreen from "screens/DownloadScreen/DownloadScreen";
 
 // Модулі
-import { InventoryScreen, InventoryCardScreen } from 'screens/Inventory';
-import TransferScreen from 'screens/Transfer';
-import ReservationScreen from 'screens/Reservation';
-import ProductPropertiesScreen from 'screens/ProductProperties';
-import PriceLabelScreen from 'screens/PriceLabel';
+import { InventoryScreen, InventoryCardScreen } from "screens/Inventory";
+import TransferScreen from "screens/Transfer";
+import ReservationScreen from "screens/Reservation";
+import ProductPropertiesScreen from "screens/ProductProperties";
+import {
+  PriceLabelScreen,
+  PriceLabelListScreen,
+  PriceLabelCardScreen,
+} from "screens/PriceLabel";
 
 // Авторизація
-import { AuthLoadingScreen, RegistrationScreen, RestrictedScreen } from "screens/Authorization";
+import {
+  AuthLoadingScreen,
+  RegistrationScreen,
+  RestrictedScreen,
+} from "screens/Authorization";
 
 const Stack = createNativeStackNavigator();
 
@@ -97,7 +105,8 @@ const AppStack = () => (
     <Stack.Screen
       name="InventoryCard"
       component={InventoryCardScreen}
-      options={{ title: "Інвентаризація" }} />
+      options={{ title: "Інвентаризація" }}
+    />
     <Stack.Screen
       name="Transfer"
       component={TransferScreen}
@@ -118,6 +127,17 @@ const AppStack = () => (
       component={PriceLabelScreen}
       options={{ title: "Цінники" }}
     />
+    <Stack.Screen
+      name="PriceLabelList"
+      component={PriceLabelListScreen}
+      options={{ title: "Список цінників" }}
+    />
+    <Stack.Screen
+      name="PriceLabelCard"
+      component={PriceLabelCardScreen}
+      options={{ title: "Цінник" }}
+    />
+
   </Stack.Navigator>
 );
 

@@ -1,3 +1,11 @@
 import PriceLabelScreen from "./PriceLabelScreen";
+import PriceLabelListScreen from "./PriceLabelListScreen";
+import PriceLabelCardScreen from "./PriceLabelCardScreen";
 
-export default PriceLabelScreen;
+
+
+export {
+  PriceLabelScreen,
+  PriceLabelListScreen,
+  PriceLabelCardScreen
+};

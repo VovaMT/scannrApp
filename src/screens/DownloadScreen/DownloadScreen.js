@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { View, Text, Button, Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { clearGoods, insertGoods } from "../../services/database/goodsService";
+import { clearGoods, insertGoods } from "services/database/goodsService";
 
-import { fetchGoods } from "../../services/api/goodsApi";
+import { fetchGoods } from "services/api/goodsApi";
 import styles from "./styles";
 
 const DownloadScreen = () => {

@@ -26,7 +26,7 @@ export const migrations = [
           description TEXT
         );
 
-        CREATE TABLE IF NOT EXISTS inventory (
+        CREATE TABLE IF NOT EXISTS goods_operations (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           goodCode TEXT NOT NULL,
           quantity REAL NOT NULL,
