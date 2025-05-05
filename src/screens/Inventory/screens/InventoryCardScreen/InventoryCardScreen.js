@@ -83,14 +83,18 @@ const InventoryCardScreen = ({ navigation, route }) => {
     }
 
     if (existingQuantity !== null) {
-      const totalQuantity = Math.round((existingQuantity + numericQuantity) * 1000) / 1000;
-      await updateGoodsOperationQuantity(good.goodCode, totalQuantity, INVENTORY_TYPE);
+      const finalQuantity = isScanMode
+        ? Math.round((existingQuantity + numericQuantity) * 1000) / 1000
+        : numericQuantity;
+
+      await updateGoodsOperationQuantity(good.goodCode, finalQuantity, INVENTORY_TYPE);
     } else {
       await addGoodsOperation(good.goodCode, numericQuantity, INVENTORY_TYPE);
     }
 
     navigation.goBack();
   };
+  
 
   if (!good) return null;
 

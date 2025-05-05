@@ -1,67 +1,74 @@
-import React, { useRef } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Animated,
-  PanResponder,
-  TouchableOpacity,
-} from "react-native";
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  runOnJS,
+} from "react-native-reanimated";
+import { GestureDetector, Gesture } from "react-native-gesture-handler";
+
+const SWIPE_THRESHOLD = -50;
+const SWIPE_MAX = -100;
 
 const PriceLabelItem = ({ item, onDelete, onPress, onCloseOthers, registerSwipe }) => {
-  const translateX = useRef(new Animated.Value(0)).current;
+  const translateX = useSharedValue(0);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
 
   const close = () => {
-    Animated.spring(translateX, {
-      toValue: 0,
-      useNativeDriver: true,
-    }).start();
+    translateX.value = withSpring(0);
   };
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderMove: (_, gestureState) => {
-        if (gestureState.dx < 0) {
-          onCloseOthers?.();
-          translateX.setValue(gestureState.dx);
-        }
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dx < -50) {
-          Animated.spring(translateX, {
-            toValue: -100,
-            useNativeDriver: true,
-          }).start();
-          registerSwipe?.({ close });
-        } else {
-          close();
-        }
-      },
+  const panGesture = Gesture.Pan()
+    .onUpdate((e) => {
+      if (e.translationX < 0) {
+        translateX.value = e.translationX;
+        runOnJS(onCloseOthers)?.();
+      }
     })
-  ).current;
+    .onEnd((e) => {
+      if (e.translationX < SWIPE_THRESHOLD) {
+        translateX.value = withSpring(SWIPE_MAX);
+        runOnJS(registerSwipe)?.({ close });
+      } else {
+        translateX.value = withSpring(0);
+      }
+    });
 
   return (
     <View style={styles.itemContainer}>
       <View style={styles.hiddenButton}>
         <TouchableOpacity
           style={styles.deleteButton}
-          onPress={() => onDelete(item.goodCode)}
+          activeOpacity={0.8}
+          onPress={() => {
+            close();
+            onDelete(item.goodCode);
+          }}
         >
           <Text style={styles.deleteButtonText}>Видалити</Text>
         </TouchableOpacity>
       </View>
 
-      <Animated.View
-        style={[styles.itemWrapper, { transform: [{ translateX }] }]}
-        {...panResponder.panHandlers}
-      >
-        <TouchableOpacity style={styles.item} onPress={onPress}>
-          <Text>{item.name || item.goodCode}</Text>
-          <Text>x{item.quantity}</Text>
-        </TouchableOpacity>
-      </Animated.View>
+      <GestureDetector gesture={panGesture}>
+        <Animated.View style={[styles.itemWrapper, animatedStyle]}>
+          <TouchableOpacity
+            style={styles.item}
+            activeOpacity={0.9}
+            onPress={() => {
+              close();
+              onPress();
+            }}
+          >
+            <Text>{item.name || item.goodCode}</Text>
+            <Text>Кількість цінників: {item.quantity}</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </GestureDetector>
+
     </View>
   );
 };
@@ -85,6 +92,7 @@ const styles = StyleSheet.create({
     backgroundColor: "red",
     justifyContent: "center",
     alignItems: "center",
+    zIndex: -1,
   },
   deleteButton: {
     flex: 1,
@@ -100,6 +108,7 @@ const styles = StyleSheet.create({
   itemWrapper: {
     flex: 1,
     backgroundColor: "white",
+    zIndex: 1,
   },
   item: {
     flex: 1,

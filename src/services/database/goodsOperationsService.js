@@ -10,7 +10,7 @@ export const clearGoodsOperationsByType = async (type) => {
 // Додати товар з конкретним типом
 export const addGoodsOperation = async (goodCode, quantity, type) => {
   const db = await getDBConnection();
-  const now = dayjs().format('YYYY-MM-DD HH:mm:ss');
+  const now = dayjs().toISOString();
 
   await db.runAsync(
     `INSERT INTO goods_operations (goodCode, quantity, type, scannedAt, updatedAt)

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useLayoutEffect, useRef } from "react";
+import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import {
   View,
   Text,
@@ -23,6 +23,7 @@ import { getNameGoodByGoodCode } from "services/database/goodsService";
 import BarcodeScanner from "components/BarcodeScanner";
 import { getUseCameraSetting } from "services/storage/userStorage";
 import { uploadInventory } from "services/api/inventoryApi";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import styles from "./styles";
 
 const INVENTORY_TYPE = 1;
@@ -66,7 +67,7 @@ const InventoryScreen = ({ navigation }) => {
   };
 
   const closeActiveSwipe = () => {
-    if (activeSwipeRef.current && activeSwipeRef.current.close) {
+    if (activeSwipeRef.current?.close) {
       activeSwipeRef.current.close();
       activeSwipeRef.current = null;
     }
@@ -195,81 +196,9 @@ const InventoryScreen = ({ navigation }) => {
     navigation.navigate("InventoryCard", { barcode: code });
   };
 
-  const renderOverlay = () => {
-    if (!uploadStatus) return null;
-
-    let message = "";
-    if (uploadStatus === "loading") message = "Відправлення...";
-    if (uploadStatus === "success") message = "✅ Успішно надіслано";
-    if (uploadStatus === "error") message = "❌ Помилка відправки";
-
-    return (
-      <View style={styles.overlay}>
-        <View style={styles.overlayBox}>
-          {uploadStatus === "loading" ? (
-            <ActivityIndicator size="large" color="#fff" />
-          ) : (
-            <Text style={styles.overlayText}>{message}</Text>
-          )}
-        </View>
-      </View>
-    );
-  };
-
   return (
-    <TouchableWithoutFeedback
-      onPress={() => {
-        closeActiveSwipe();
-        Keyboard.dismiss();
-      }}
-    >
-      <View style={styles.container}>
-        <TextInput
-          ref={hiddenInputRef}
-          style={{ height: 0, width: 0, opacity: 0 }}
-          autoFocus
-          value={barcodeScanned}
-          onChangeText={barcodeInput}
-          keyboardType="numeric"
-          showSoftInputOnFocus={false}
-        />
-
-        <View style={styles.inputRow}>
-          <TextInput
-            value={barcode}
-            onChangeText={setBarcode}
-            style={styles.barcodeInput}
-            placeholder="Введіть штрих-код"
-            keyboardType="numeric"
-            showSoftInputOnFocus={true}
-          />
-
-          <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
-            <Ionicons name="search" size={24} color="white" />
-          </TouchableOpacity>
-        </View>
-
-        {items.length === 0 ? (
-          <Text style={styles.emptyText}>Список порожній</Text>
-        ) : (
-          <FlatList
-            data={items}
-            keyExtractor={(item) => item.goodCode}
-            renderItem={({ item }) => (
-              <InventoryItem
-                item={item}
-                onDelete={handleDeleteItem}
-                onPress={() => handlePressItem(item.goodCode)}
-                onCloseOthers={closeActiveSwipe}
-                registerSwipe={(ref) => {
-                  closeActiveSwipe();
-                  activeSwipeRef.current = ref;
-                }}
-              />
-            )}
-          />
-        )}
-
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      {scannerVisible ? (
         <BarcodeScanner
           visible={scannerVisible}
           onClose={() => setScannerVisible(false)}
@@ -282,9 +211,63 @@ const InventoryScreen = ({ navigation }) => {
             }
           }}
         />
-        {renderOverlay()}
-      </View>
-    </TouchableWithoutFeedback>
+      ) : (
+        <TouchableWithoutFeedback
+          onPress={() => {
+            closeActiveSwipe();
+            Keyboard.dismiss();
+          }}
+        >
+          <View style={styles.container}>
+            <TextInput
+              ref={hiddenInputRef}
+              style={{ height: 0, width: 0, opacity: 0 }}
+              autoFocus
+              value={barcodeScanned}
+              onChangeText={barcodeInput}
+              keyboardType="numeric"
+              showSoftInputOnFocus={false}
+            />
+
+            <View style={styles.inputRow}>
+              <TextInput
+                value={barcode}
+                onChangeText={setBarcode}
+                style={styles.barcodeInput}
+                placeholder="Введіть штрих-код"
+                keyboardType="numeric"
+                showSoftInputOnFocus={true}
+              />
+
+              <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+                <Ionicons name="search" size={24} color="white" />
+              </TouchableOpacity>
+            </View>
+
+            {items.length === 0 ? (
+              <Text style={styles.emptyText}>Список порожній</Text>
+            ) : (
+              <FlatList
+                data={items}
+                keyExtractor={(item) => item.goodCode}
+                renderItem={({ item }) => (
+                  <InventoryItem
+                    item={item}
+                    onDelete={handleDeleteItem}
+                    onPress={() => handlePressItem(item.goodCode)}
+                    onCloseOthers={closeActiveSwipe}
+                    registerSwipe={(ref) => {
+                      closeActiveSwipe();
+                      activeSwipeRef.current = ref;
+                    }}
+                  />
+                )}
+              />
+            )}
+          </View>
+        </TouchableWithoutFeedback>
+      )}
+    </GestureHandlerRootView>
   );
 };
 

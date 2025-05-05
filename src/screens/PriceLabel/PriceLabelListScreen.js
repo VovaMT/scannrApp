@@ -24,11 +24,12 @@ import {
 import { getNameGoodByGoodCode } from "services/database/goodsService";
 import { getUseCameraSetting } from "services/storage/userStorage";
 import { uploadInventory } from "services/api/inventoryApi";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const PRICE_LABEL_TYPE = 2;
 
 const PriceLabelListScreen = ({ navigation, route }) => {
-  const { mode } = route.params; // check або print
+  const { mode } = route.params;
   const [items, setItems] = useState([]);
   const [barcode, setBarcode] = useState("");
   const [barcodeScanned, setBarcodeScanned] = useState("");
@@ -53,15 +54,15 @@ const PriceLabelListScreen = ({ navigation, route }) => {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <View 
-        style={{
+        <View
+          style={{
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "flex-end",
             minWidth: 100,
             marginRight: 10,
           }}
-          >
+        >
           {allowCamera && (
             <TouchableOpacity onPress={openScanner} style={{ marginRight: 15 }}>
               <Ionicons name="scan-outline" size={24} color="black" />
@@ -176,19 +177,18 @@ const PriceLabelListScreen = ({ navigation, route }) => {
 
   const renderOverlay = () => {
     if (!uploadStatus) return null;
-
-    let message = "";
-    if (uploadStatus === "loading") message = "Відправлення...";
-    if (uploadStatus === "success") message = "✅ Успішно надіслано";
-    if (uploadStatus === "error") message = "❌ Помилка відправки";
-
+    const messages = {
+      loading: "Відправлення...",
+      success: "✅ Успішно надіслано",
+      error: "❌ Помилка відправки",
+    };
     return (
       <View style={styles.overlay}>
         <View style={styles.overlayBox}>
           {uploadStatus === "loading" ? (
             <ActivityIndicator size="large" color="#fff" />
           ) : (
-            <Text style={styles.overlayText}>{message}</Text>
+            <Text style={styles.overlayText}>{messages[uploadStatus]}</Text>
           )}
         </View>
       </View>
@@ -196,53 +196,8 @@ const PriceLabelListScreen = ({ navigation, route }) => {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={() => { closeActiveSwipe(); Keyboard.dismiss(); }}>
-      <View style={styles.container}>
-        <TextInput
-          ref={hiddenInputRef}
-          style={{ height: 0, width: 0, opacity: 0 }}
-          autoFocus
-          value={barcodeScanned}
-          onChangeText={barcodeInput}
-          keyboardType="numeric"
-          showSoftInputOnFocus={false}
-        />
-
-        <View style={styles.inputRow}>
-          <TextInput
-            value={barcode}
-            onChangeText={setBarcode}
-            style={styles.barcodeInput}
-            placeholder="Введіть штрих-код"
-            keyboardType="numeric"
-          />
-
-          <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
-            <Ionicons name="search" size={24} color="white" />
-          </TouchableOpacity>
-        </View>
-
-        {items.length === 0 ? (
-          <Text style={styles.emptyText}>Список порожній</Text>
-        ) : (
-          <FlatList
-            data={items}
-            keyExtractor={(item) => item.goodCode}
-            renderItem={({ item }) => (
-              <PriceLabelItem
-                item={item}
-                onDelete={handleDeleteItem}
-                onPress={() => navigation.navigate("PriceLabelCard", { goodCode: item.goodCode, mode })}
-                onCloseOthers={closeActiveSwipe}
-                registerSwipe={(ref) => {
-                  closeActiveSwipe();
-                  activeSwipeRef.current = ref;
-                }}
-              />
-            )}
-          />
-        )}
-
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      {scannerVisible ? (
         <BarcodeScanner
           visible={scannerVisible}
           onClose={() => setScannerVisible(false)}
@@ -255,9 +210,76 @@ const PriceLabelListScreen = ({ navigation, route }) => {
             }
           }}
         />
-        {renderOverlay()}
-      </View>
-    </TouchableWithoutFeedback>
+      ) : (
+        <View style={styles.container}>
+          <TextInput
+            ref={hiddenInputRef}
+            style={{ height: 0, width: 0, opacity: 0 }}
+            autoFocus
+            value={barcodeScanned}
+            onChangeText={barcodeInput}
+            keyboardType="numeric"
+            showSoftInputOnFocus={false}
+          />
+
+          <View style={styles.inputRow}>
+            <TextInput
+              value={barcode}
+              onChangeText={setBarcode}
+              style={styles.barcodeInput}
+              placeholder="Введіть штрих-код"
+              keyboardType="numeric"
+            />
+
+            <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+              <Ionicons name="search" size={24} color="white" />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableWithoutFeedback
+            onPress={() => {
+              closeActiveSwipe();
+              Keyboard.dismiss();
+            }}
+          >
+            <View
+              style={{ flex: 1 }}
+              onStartShouldSetResponder={() => {
+                closeActiveSwipe();
+                return false;
+              }}
+            >
+              {items.length === 0 ? (
+                <Text style={styles.emptyText}>Список порожній</Text>
+              ) : (
+                <FlatList
+                  data={items}
+                  keyExtractor={(item) => item.goodCode}
+                  renderItem={({ item }) => (
+                    <PriceLabelItem
+                      item={item}
+                      onDelete={handleDeleteItem}
+                      onPress={() =>
+                        navigation.navigate("PriceLabelCard", {
+                          goodCode: item.goodCode,
+                          mode,
+                        })
+                      }
+                      onCloseOthers={closeActiveSwipe}
+                      registerSwipe={(ref) => {
+                        closeActiveSwipe();
+                        activeSwipeRef.current = ref;
+                      }}
+                    />
+                  )}
+                />
+              )}
+            </View>
+          </TouchableWithoutFeedback>
+          {renderOverlay()}
+        </View>
+      )}
+    </GestureHandlerRootView>
   );
 };
 

@@ -1,23 +1,35 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 const PriceLabelScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate("PriceLabelList", { mode: "check" })}
-      >
-        <Text style={styles.buttonText}>Перевірка цінників</Text>
-      </TouchableOpacity>
+      <View style={styles.grid}>
+        <TouchableOpacity
+          style={styles.moduleBox}
+          onPress={() => navigation.navigate("PriceLabelList", { mode: "check" })}
+        >
+          <View style={styles.iconRow}>
+            <Ionicons name="checkmark-circle-outline" size={24} color="#333" />
+          </View>
+          <View style={styles.moduleContent}>
+            <Text style={styles.moduleText}>Перевірка цінників</Text>
+          </View>
+        </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate("PriceLabelList", { mode: "print" })}
-      >
-        <Text style={styles.buttonText}>Друк цінників</Text>
-      </TouchableOpacity>
-
+        <TouchableOpacity
+          style={styles.moduleBox}
+          onPress={() => navigation.navigate("PriceLabelList", { mode: "print" })}
+        >
+          <View style={styles.iconRow}>
+            <Ionicons name="print-outline" size={24} color="#333" />
+          </View>
+          <View style={styles.moduleContent}>
+            <Text style={styles.moduleText}>Друк цінників</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -27,34 +39,32 @@ export default PriceLabelScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f2f2f2",
-    justifyContent: "center",
-    alignItems: "center",
     padding: 20,
+    backgroundColor: "#fff",
   },
-  title: {
-    fontSize: 26,
-    fontWeight: "bold",
-    marginBottom: 40,
-    color: "#333",
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
   },
-  button: {
-    backgroundColor: "#4CAF50",
-    paddingVertical: 14,
-    paddingHorizontal: 40,
+  moduleBox: {
+    width: "48%",
+    backgroundColor: "#f2f2f2",
+    padding: 15,
+    marginBottom: 15,
     borderRadius: 12,
-    marginBottom: 20,
-    width: "100%",
-    maxWidth: 300,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
     elevation: 3,
   },
-  buttonText: {
-    color: "#fff",
-    fontSize: 18,
+  iconRow: {
+    alignItems: "flex-start",
+    marginBottom: 10,
+  },
+  moduleContent: {
+    justifyContent: "center",
+  },
+  moduleText: {
+    fontSize: 16,
     fontWeight: "600",
+    color: "#333",
   },
 });
