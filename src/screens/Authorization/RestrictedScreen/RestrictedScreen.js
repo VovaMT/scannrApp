@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { View, Text, ScrollView, RefreshControl, StyleSheet, Alert } from "react-native";
-import { checkLicense, getUserInfoByKey } from "services/api/authApi";
-import { saveUserData } from "services/storage/userStorage";
+import { getUserInfo } from "services/api/authApi";
+import { saveUserData, getUserData, saveStores } from "services/storage/userStorage";
 import { fetchDeviceId } from "utils/deviceUtils";
-import { getUserData } from "services/storage/userStorage"; 
+
 const RestrictedScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [deviceKey, setDeviceKey] = useState("-");
@@ -11,10 +11,10 @@ const RestrictedScreen = ({ navigation }) => {
 
   useEffect(() => {
     const loadDeviceInfo = async () => {
-      const id = await fetchDeviceId();
-      setDeviceKey(id || "-");
-
       const user = await getUserData();
+      let key = user.key;
+
+      setDeviceKey(key || "-");
       if (user.name) setUserName(user.name);
     };
     loadDeviceInfo();
@@ -22,33 +22,58 @@ const RestrictedScreen = ({ navigation }) => {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-
-    const id = await fetchDeviceId();
+  
     try {
-      await checkLicense(id);
-      const userData = await getUserInfoByKey(id);
-      if (userData) {
-        await saveUserData(userData.name, id, true);
+      const user = await getUserData();
+      let key = user.key;
+      let keyLicense = user.keyLicense;
+  
+      if (!key || !keyLicense) {
+        throw new Error("Missing local key or license");
       }
-      Alert.alert("Ліцензія отримана", "Тепер ви маєте доступ до модулів");
+  
+      const userInfo = await getUserInfo(key, keyLicense);
+  
+      const activeStoreId = userInfo.store?.id || null;
+      await saveUserData(userInfo.name, key, userInfo.keyLicense, userInfo.role, activeStoreId);
+  
+      if (userInfo.role === 2 && userInfo.stores) {
+        await saveStores(userInfo.stores);
+      }
+  
+      Alert.alert("Ліцензія підтверджена", "Тепер ви маєте доступ до модулів");
       navigation.replace("Home");
+  
     } catch (err) {
-      if (err.error && err.error.includes("User not found")) {
+      console.log("Помилка:", err.message);
+      const msg = err.message || "Помилка";
+  
+      if (msg === "User not found") {
         Alert.alert("Користувача не знайдено");
         navigation.replace("Registration");
+      } else if (
+        msg === "No license" ||
+        msg === "Invalid license" ||
+        msg === "Token does not match key"
+      ) {
+        Alert.alert("Неправильна ліцензія", "Отримайте нову або зверніться до адміністратора");
+      } else if (msg === "User not assigned to any store") {
+        Alert.alert("Помилка", "Користувач не прив'язаний до жодного магазину");
       } else {
         Alert.alert("Ліцензії все ще немає", "Спробуйте пізніше");
       }
     }
+  
     setRefreshing(false);
-  }, []);
+  }, [navigation]);
+  
 
   return (
     <ScrollView
       contentContainerStyle={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-      <Text style={styles.header}>У вас ще немає ліцензії</Text>
+      <Text style={styles.header}>У вас ще немає доступу</Text>
       <Text style={styles.subtext}>Потягніть вниз, щоб перевірити ще раз</Text>
 
       <View style={styles.section}>

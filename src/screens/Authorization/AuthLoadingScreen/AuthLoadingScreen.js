@@ -1,42 +1,46 @@
 import React, { useEffect } from "react";
 import { View, ActivityIndicator, StyleSheet, Alert } from "react-native";
-import { checkLicense, getUserInfoByKey } from "services/api/authApi";
+import {
+  getUserLicenseInfo,
+  getUserInfo,
+} from "services/api/authApi";
 import { fetchDeviceId } from "utils/deviceUtils";
-import { saveUserData } from "services/storage/userStorage";
+import {
+  getUserData,
+  saveUserData,
+  clearUserData,
+  saveStores
+} from "services/storage/userStorage";
 
 const AuthLoadingScreen = ({ navigation }) => {
-
   useEffect(() => {
     const checkAuth = async () => {
-      const deviceId = await fetchDeviceId();
-
-      if (!deviceId) {
-        Alert.alert("Помилка", "Не вдалося отримати ID пристрою");
-        return;
-      }
-
       try {
-        await checkLicense(deviceId);
+        let localData = await getUserData();
+        let deviceId = localData.key || await fetchDeviceId();
+        if (!deviceId) throw new Error("no_device");
 
-        // Якщо ліцензія є, завантажуємо дані користувача
-        const userData = await getUserInfoByKey(deviceId);
+        let license = localData.keyLicense;
 
-        if (userData) {
-          await saveUserData(userData.name, deviceId, true);
+        // Якщо ліцензії ще нема — пробуємо отримати з сервера
+        if (!license) {
+          license = await getUserLicenseInfo(deviceId);
+        }
+
+        // Тепер завжди отримуємо повну інформацію
+        const userInfo = await getUserInfo(deviceId, license);
+
+        const activeStoreId = userInfo.store?.id || null;
+        await saveUserData(userInfo.name, deviceId, userInfo.keyLicense, userInfo.role, activeStoreId);
+
+        if (userInfo.role === 2 && userInfo.stores) {
+          await saveStores(userInfo.stores);
         }
 
         navigation.replace("Home");
-
       } catch (error) {
-        console.log("Помилка при перевірці ліцензії:", error.message);
-
-        if (error.message === "User not found") {
-          navigation.replace("Registration");
-        } else if (error.message.includes("Network request failed")) {
-          Alert.alert("Помилка", "Немає з'єднання з сервером");
-        } else {
-          navigation.replace("Restricted");
-        }
+        console.log("Помилка:", error.message);
+        handleAuthError(error.message, navigation);
       }
     };
 
@@ -48,6 +52,35 @@ const AuthLoadingScreen = ({ navigation }) => {
       <ActivityIndicator size="large" />
     </View>
   );
+};
+
+const handleAuthError = async (message, navigation) => {
+  switch (message) {
+    case "User not found":
+      await clearUserData();
+      navigation.replace("Registration");
+      break;
+    case "Invalid license":
+    case "Token does not match key":
+    case "No license":
+      await clearUserData();
+      navigation.replace("Restricted");
+      break;
+    case "User not assigned to any store":
+      Alert.alert("Помилка", "Користувач не прив'язаний до жодного магазину");
+      navigation.replace("Restricted");
+      break;
+    case "no_device":
+      Alert.alert("Помилка", "Не вдалося отримати ID пристрою");
+      break;
+    default:
+      if (message.includes("Network request failed")) {
+        Alert.alert("Помилка", "Немає з'єднання з сервером");
+      } else {
+        navigation.replace("Restricted");
+      }
+      break;
+  }
 };
 
 export default AuthLoadingScreen;

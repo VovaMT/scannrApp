@@ -31,21 +31,18 @@ const RegistrationScreen = ({ navigation }) => {
     setRegisterDisabled(true);
   
     try {
-      const success = await registerUser(name, deviceKey);
+      const keyLicense = await registerUser(name, deviceKey);
   
-      if (success === true) {
-        await saveUserData(name, deviceKey); 
-        navigation.replace("Restricted");
-      } else {
-        setRegisterDisabled(false);
-        Alert.alert("Помилка", success?.error || "Щось пішло не так");
-      }
+      // Зберігаємо ім’я, ключ, ліцензію, роль=null, магазин=null
+      await saveUserData(name, deviceKey, keyLicense, null, null);
+      navigation.replace("Restricted");
+  
     } catch (error) {
       setRegisterDisabled(false);
       Alert.alert("Помилка", error.message || "Не вдалося виконати реєстрацію");
     }
   };
-
+  
   return (
     <View style={styles.container}>
       <Image

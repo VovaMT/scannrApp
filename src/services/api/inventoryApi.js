@@ -1,12 +1,12 @@
 import { API_BASE_URL } from './apiConfig';
 import { INVENTORY_ENDPOINTS } from './urls';
 
-export const uploadInventory = async (inventoryItems, deviceKey) => {
+export const uploadInventory = async (inventoryItems, deviceKey, licenseKey) => {
   const response = await fetch(`${API_BASE_URL}${INVENTORY_ENDPOINTS.UPLOAD_RESULTS}`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
       "Device-Key": deviceKey,
+      "License-Key": licenseKey,
     },
     body: JSON.stringify(inventoryItems),
   });

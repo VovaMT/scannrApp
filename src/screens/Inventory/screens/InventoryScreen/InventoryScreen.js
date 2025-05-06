@@ -141,6 +141,7 @@ const InventoryScreen = ({ navigation }) => {
     try {
       const items = await getAllGoodsOperationsByType(INVENTORY_TYPE);
       const deviceKey = await AsyncStorage.getItem("device_key");
+      const licenseKey = await AsyncStorage.getItem("key_license");
 
       if (!deviceKey) {
         Alert.alert("Помилка", "Ключ пристрою не знайдено");
@@ -152,7 +153,7 @@ const InventoryScreen = ({ navigation }) => {
         return false;
       }
 
-      await uploadInventory(items, deviceKey);
+      await uploadInventory(items, deviceKey, licenseKey);
       Alert.alert("Успіх", "Інвентаризацію надіслано на сервер");
       return true;
     } catch (error) {

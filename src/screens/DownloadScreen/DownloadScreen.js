@@ -16,8 +16,9 @@ const DownloadScreen = () => {
       setProgress(0.1);
 
       const deviceKey = await AsyncStorage.getItem("device_key");
+      const licenseKey = await AsyncStorage.getItem("key_license");
 
-      const goods = await fetchGoods(deviceKey);
+      const goods = await fetchGoods(deviceKey, licenseKey);
       setProgress(0.4);
 
       await clearGoods();
